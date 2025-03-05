@@ -1,4 +1,3 @@
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
@@ -8,7 +7,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float speed;
     [SerializeField] private float maxSpeed;
     [SerializeField] private float friction;
-    [SerializeField] private Transform groundCheck;
+    [SerializeField] private RectTransform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float jumpSpeed;
     [SerializeField] private float climbSpeed;
@@ -64,7 +63,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Ladder"))
+        if (other.CompareTag("Ladder"))
         {
             canClimb = true;
         }
@@ -76,7 +75,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (other.gameObject.layer == LayerMask.NameToLayer("Ladder"))
+        if (other.CompareTag("Ladder"))
         {
             canClimb = false;
         }
