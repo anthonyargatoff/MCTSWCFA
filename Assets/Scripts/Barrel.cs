@@ -1,14 +1,11 @@
-using System;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Barrel : MonoBehaviour
 {
-  public enum AccelerationDirection { Right, Left, None };
-  private AccelerationDirection accelerationDirection;
   private Rigidbody2D barrelRb;
   [SerializeField] private float barrelSpeed;
-
+  [SerializeField] private float chanceToFallOff;
+  private bool barrelMovingRight = true;
 
   void Start()
   {
@@ -17,49 +14,56 @@ public class Barrel : MonoBehaviour
 
   void Update()
   {
-    ApplyBarrelSpeed();
+    ApplyBarrelVelocity();
   }
-  void OnCollisionEnter2D(Collision2D collision)
+
+  void OnTriggerEnter2D(Collider2D collision)
   {
-    if (collision.gameObject.CompareTag("Platform"))
-    {
-      SetAccelerationDirection(collision);
-    }
+    HandleBarrelRoll(collision);
+    BarrelCleanUp(collision);
   }
 
-  void OnCollisionExit2D(Collision2D collision)
+  /// <summary>
+  /// Determine if the barrel will fall off, given a chance modifier
+  /// </summary>
+  /// <param name="collision"></param>
+  private void HandleBarrelRoll(Collider2D collision)
   {
-    if (collision.gameObject.CompareTag("Platform"))
+    if (collision.gameObject.CompareTag("PlatformBarrelWall"))
     {
-      accelerationDirection = AccelerationDirection.None;
+      int randomNum = Random.Range(0, 100);
+      if (randomNum > (chanceToFallOff * 100))
+      {
+        barrelMovingRight = !barrelMovingRight;
+      }
     }
-
   }
 
-  private void SetAccelerationDirection(Collision2D collision)
+  /// <summary>
+  /// Apply a linear velocity to the barrels
+  /// </summary>
+  private void ApplyBarrelVelocity()
   {
-    Platform platform = collision.gameObject.GetComponent<Platform>();
-
-    if (platform.accelerationDirection == Platform.AccelerationDirection.Left)
+    if (barrelMovingRight)
     {
-      accelerationDirection = AccelerationDirection.Left;
+      barrelRb.linearVelocityX = barrelSpeed;
     }
-    else if (platform.accelerationDirection == Platform.AccelerationDirection.Right)
+    else
     {
-      accelerationDirection = AccelerationDirection.Right;
+      barrelRb.linearVelocityX = -barrelSpeed;
     }
   }
 
-  private void ApplyBarrelSpeed()
+  /// <summary>
+  /// Destroys the barrels when it collides with object (to cleanup fallen barrels)
+  /// </summary>
+  /// <param name="collision"></param>
+  private void BarrelCleanUp(Collider2D collision)
   {
-    switch (accelerationDirection)
+    if (collision.gameObject.name == "BarrelCleanUp")
     {
-      case AccelerationDirection.Right:
-        barrelRb.linearVelocityX =  barrelSpeed;
-        break;
-      case AccelerationDirection.Left:
-        barrelRb.linearVelocityX = -barrelSpeed;
-        break;
+      Destroy(gameObject);
     }
   }
+
 }
