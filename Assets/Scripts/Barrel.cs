@@ -5,7 +5,7 @@ using UnityEngine;
 public class Barrel : MonoBehaviour
 {
   public enum AccelerationDirection { Right, Left, None };
-  public AccelerationDirection accelerationDirection;
+  private AccelerationDirection accelerationDirection;
   private Rigidbody2D barrelRb;
   [SerializeField] private float barrelSpeed;
 
@@ -17,13 +17,12 @@ public class Barrel : MonoBehaviour
 
   void Update()
   {
-    ApplyForceToBarrel();
+    ApplyBarrelSpeed();
   }
   void OnCollisionEnter2D(Collision2D collision)
   {
     if (collision.gameObject.CompareTag("Platform"))
     {
-      Debug.Log("Detected Collision with platform");
       SetAccelerationDirection(collision);
     }
   }
@@ -32,7 +31,6 @@ public class Barrel : MonoBehaviour
   {
     if (collision.gameObject.CompareTag("Platform"))
     {
-      Debug.Log("Barrel leaving platform");
       accelerationDirection = AccelerationDirection.None;
     }
 
@@ -52,17 +50,15 @@ public class Barrel : MonoBehaviour
     }
   }
 
-  private void ApplyForceToBarrel()
+  private void ApplyBarrelSpeed()
   {
     switch (accelerationDirection)
     {
       case AccelerationDirection.Right:
-        barrelRb.AddForce(new Vector2(barrelSpeed, 0));
+        barrelRb.linearVelocityX =  barrelSpeed;
         break;
       case AccelerationDirection.Left:
-        barrelRb.AddForce(new Vector2(-1 * barrelSpeed, 0));
-        break;
-      case AccelerationDirection.None:
+        barrelRb.linearVelocityX = -barrelSpeed;
         break;
     }
   }
