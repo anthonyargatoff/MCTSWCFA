@@ -6,6 +6,8 @@ public class Barrel : MonoBehaviour
   [SerializeField] private float barrelSpeed;
   [SerializeField] private float chanceToFallOff;
   private bool barrelMovingRight = true;
+  [SerializeField] float chanceToTakeLadder;
+  private bool onLadder = false;
 
   void Start()
   {
@@ -21,6 +23,7 @@ public class Barrel : MonoBehaviour
   {
     HandleBarrelRoll(collision);
     BarrelCleanUp(collision);
+    // HandleLadder(collision);
   }
 
   /// <summary>
@@ -52,6 +55,10 @@ public class Barrel : MonoBehaviour
     {
       barrelRb.linearVelocityX = -barrelSpeed;
     }
+    if (onLadder)
+    {
+      barrelRb.linearVelocity = new Vector2(0, -2);
+    }
   }
 
   /// <summary>
@@ -65,5 +72,17 @@ public class Barrel : MonoBehaviour
       Destroy(gameObject);
     }
   }
+
+  // private void HandleLadder(Collider2D collision)
+  // {
+  //   if (collision.gameObject.CompareTag("BarrelUseLadder"))
+  //   {
+  //     int randomNum = Random.Range(0, 100);
+  //     if (randomNum > (chanceToTakeLadder * 100))
+  //     {
+  //       onLadder = true;
+  //     }
+  //   }
+  // }
 
 }
