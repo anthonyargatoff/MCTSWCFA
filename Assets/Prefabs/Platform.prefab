@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5034179217524681359}
   - component: {fileID: 8710935427504410282}
   - component: {fileID: 5458436031326796611}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Platform
   m_TagString: Platform
   m_Icon: {fileID: 0}
@@ -194,6 +194,10 @@ PrefabInstance:
     - target: {fileID: 7072512617243635375, guid: eddefc22083962bb295803bb7fe17266, type: 3}
       propertyPath: m_Name
       value: BarrelInvisibleWall
+      objectReference: {fileID: 0}
+    - target: {fileID: 7072512617243635375, guid: eddefc22083962bb295803bb7fe17266, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7072512617243635375, guid: eddefc22083962bb295803bb7fe17266, type: 3}
       propertyPath: m_TagString
