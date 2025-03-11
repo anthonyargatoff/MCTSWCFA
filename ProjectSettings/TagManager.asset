@@ -4,6 +4,8 @@
 TagManager:
   serializedVersion: 3
   tags:
+  - LadderTop
+  - LadderBottom
   - Platform
   - Ladder
   - PlatformBarrelWall
@@ -15,8 +17,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - Ground
+  - Ladder
   - 
   - 
   - 
