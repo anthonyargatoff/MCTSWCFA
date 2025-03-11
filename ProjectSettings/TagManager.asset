@@ -4,9 +4,12 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Ladder
   - LadderTop
   - LadderBottom
+  - Platform
+  - Ladder
+  - PlatformBarrelWall
+  - BarrelUseLadder
   layers:
   - Default
   - TransparentFX
