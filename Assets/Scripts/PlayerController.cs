@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     private bool isClimbing;
     private bool canClimb;
     private bool atLadderTop;
+    private bool atLadderBottom;
 
     void Awake()
     {
@@ -71,6 +72,10 @@ public class PlayerController : MonoBehaviour
         {
             atLadderTop = true;
         }
+        if (other.CompareTag("LadderBottom"))
+        {
+            atLadderBottom = true;
+        }
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -83,6 +88,10 @@ public class PlayerController : MonoBehaviour
         {
             atLadderTop = false;
         }
+        if (other.CompareTag("LadderBottom"))
+        {
+            atLadderBottom = false;
+        }
     }
 
     void FixedUpdate()
@@ -90,6 +99,10 @@ public class PlayerController : MonoBehaviour
         if (isClimbing)
         {
             if (atLadderTop && moveInput > 0)
+            {
+                rb.linearVelocity = Vector2.zero;
+            }
+            else if (atLadderBottom && moveInput < 0)
             {
                 rb.linearVelocity = Vector2.zero;
             }
