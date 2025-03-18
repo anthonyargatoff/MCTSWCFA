@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
@@ -18,6 +19,8 @@ public class PlayerController : MonoBehaviour
     private bool atLadderTop;
     private bool atLadderBottom;
 
+    private List<Collider2D> platforms;
+    
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -26,7 +29,6 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
-
     }
 
     public void OnJump()
@@ -44,8 +46,12 @@ public class PlayerController : MonoBehaviour
         if (canClimb && input.y != 0)
         {
             moveInput = input.y;
+            if (!isClimbing)
+            {
+                ToggleGroundCollisions(false);   
+            }
             isClimbing = true;
-            Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Ground"), true);
+            
             rb.gravityScale = 0;
         }
         else if ((isClimbing && !isGrounded && canClimb) || (isClimbing && canClimb && input.x == 0))
@@ -55,9 +61,12 @@ public class PlayerController : MonoBehaviour
         else
         {
             moveInput = input.x;
+            if (isClimbing)
+            {
+                ToggleGroundCollisions(true);
+            }
             isClimbing = false;
-            Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Ground"), false);
-
+            
             rb.gravityScale = 1;
         }
     }
@@ -65,7 +74,7 @@ public class PlayerController : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Ladder"))
-        {
+        { 
             canClimb = true;
         }
         if (other.CompareTag("LadderTop"))
@@ -94,11 +103,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
+        var colliders = new List<Collider2D>();
+        rb.GetContacts(colliders);
+        
         if (isClimbing)
         {
-            if (atLadderTop && moveInput > 0)
+            var ladderTop = colliders.Find(x => x.CompareTag("LadderTop"));
+            if (atLadderTop && moveInput > 0 && ladderTop != null && ladderTop.transform.position.y <= transform.position.y - transform.lossyScale.y / 2)
             {
                 rb.linearVelocity = Vector2.zero;
             }
@@ -129,6 +142,28 @@ public class PlayerController : MonoBehaviour
                 rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
             }
         }
+    }
+
+    private void ToggleGroundCollisions(bool toggle)
+    {
+        if (platforms == null)
+        {
+            platforms = new List<Collider2D>();
+            var objs = GameObject.FindGameObjectsWithTag("Platform");
+            foreach (var obj in objs)
+            {
+                var c2d = obj.GetComponent<Collider2D>();
+                if (c2d != null)
+                {
+                    platforms.Add(c2d);
+                }
+            }
+        }
         
+        foreach (var contact in platforms)
+        {
+            contact.excludeLayers = !toggle ? LayerMask.GetMask("Player") : LayerMask.GetMask();   
+        }
+        Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Ground"), !toggle);
     }
 }
