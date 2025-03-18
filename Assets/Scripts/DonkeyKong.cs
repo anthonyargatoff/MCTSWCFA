@@ -4,7 +4,7 @@ public class DonkeyKong : MonoBehaviour
 {
   private bool isMovingRight = true;
   [SerializeField] private Rigidbody2D donkeyKongRigidbody;
-  [SerializeField] private float donkeyKongSpeed = 2f;
+  [SerializeField] private float donkeyKongSpeed = 5f;
 
   // Update is called once per frame
   void Update()
