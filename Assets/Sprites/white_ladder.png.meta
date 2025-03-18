@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: e846472096e4323e2a227d120a395dbb
+guid: 322dd14df6f0aa8788ba38ed41406b74
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3271835467205312122
-    second: red_ladder_0
+      213: -5623194428626525839
+    second: test_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,21 +37,21 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
-    wrapU: 1
-    wrapV: 1
-    wrapW: 1
+    wrapU: 0
+    wrapV: 0
+    wrapW: 0
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 14
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: red_ladder_0
+      name: test_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 68104bd3afa1892d0800000000000000
-      internalID: -3271835467205312122
+      spriteID: 171a2cac57666f1b0800000000000000
+      internalID: -5623194428626525839
       vertices: []
       indices: 
       edges: []
@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      test_0: -5623194428626525839
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
