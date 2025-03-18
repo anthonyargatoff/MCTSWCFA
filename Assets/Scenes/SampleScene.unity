@@ -3193,6 +3193,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 2274756001688546033, guid: 48be5d7bd9a4552449dc1227b3a038ac, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -0.871
+      objectReference: {fileID: 0}
     - target: {fileID: 3493126842356176965, guid: 48be5d7bd9a4552449dc1227b3a038ac, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
