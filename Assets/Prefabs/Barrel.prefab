@@ -167,4 +167,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   barrelSpeed: 3
   chanceToFallOff: 0.2
-  chanceToTakeLadder: 0.2
+  chanceToTakeLadder: 0.5

@@ -21,7 +21,6 @@ public class PlayerController : MonoBehaviour
     private bool canClimb;
     private bool atLadderTop;
     private bool atLadderBottom;
-    private bool isSnappingToLadder;
 
     private List<Collider2D> platforms;
 
@@ -180,7 +179,6 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator SmoothMoveToLadder(Vector3 targetPosition)
     {
-        isSnappingToLadder = true;
         float duration = 0.2f;
         float elapsedTime = 0f;
         Vector3 startPosition = transform.position;
@@ -192,6 +190,5 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
         transform.position = targetPosition;
-        isSnappingToLadder = false;
     }
 }
