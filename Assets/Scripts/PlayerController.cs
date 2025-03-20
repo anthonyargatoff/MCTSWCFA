@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -12,15 +13,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float jumpSpeed;
     [SerializeField] private float climbSpeed;
+    private Collider2D currentLadder; 
+    private Vector3 ladderCenter;
     private float moveInput;
     private bool isGrounded;
     private bool isClimbing;
     private bool canClimb;
     private bool atLadderTop;
     private bool atLadderBottom;
+    private bool isSnappingToLadder;
 
     private List<Collider2D> platforms;
-    
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -29,6 +33,10 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        if (canClimb)
+        {
+            ladderCenter = new Vector3(currentLadder.transform.position.x, transform.position.y, transform.position.z);
+        }
     }
 
     public void OnJump()
@@ -48,10 +56,12 @@ public class PlayerController : MonoBehaviour
             moveInput = input.y;
             if (!isClimbing)
             {
-                ToggleGroundCollisions(false);   
+                ToggleGroundCollisions(false);
+                StartCoroutine(SmoothMoveToLadder(ladderCenter));
             }
-            isClimbing = true;
             
+            isClimbing = true;
+
             rb.gravityScale = 0;
         }
         else if ((isClimbing && !isGrounded && canClimb) || (isClimbing && canClimb && input.x == 0))
@@ -66,7 +76,7 @@ public class PlayerController : MonoBehaviour
                 ToggleGroundCollisions(true);
             }
             isClimbing = false;
-            
+
             rb.gravityScale = 1;
         }
     }
@@ -74,8 +84,9 @@ public class PlayerController : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Ladder"))
-        { 
+        {
             canClimb = true;
+            currentLadder = other;
         }
         if (other.CompareTag("LadderTop"))
         {
@@ -107,7 +118,7 @@ public class PlayerController : MonoBehaviour
     {
         var colliders = new List<Collider2D>();
         rb.GetContacts(colliders);
-        
+
         if (isClimbing)
         {
             var ladderTop = colliders.Find(x => x.CompareTag("LadderTop"));
@@ -159,11 +170,28 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        
+
         foreach (var contact in platforms)
         {
-            contact.excludeLayers = !toggle ? LayerMask.GetMask("Player") : LayerMask.GetMask();   
+            contact.excludeLayers = !toggle ? LayerMask.GetMask("Player") : LayerMask.GetMask();
         }
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Ground"), !toggle);
+    }
+
+    private IEnumerator SmoothMoveToLadder(Vector3 targetPosition)
+    {
+        isSnappingToLadder = true;
+        float duration = 0.2f;
+        float elapsedTime = 0f;
+        Vector3 startPosition = transform.position;
+
+        while (elapsedTime < duration)
+        {
+            transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        transform.position = targetPosition;
+        isSnappingToLadder = false;
     }
 }

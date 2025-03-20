@@ -1,4 +1,7 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Barrel : MonoBehaviour
 {
@@ -8,10 +11,12 @@ public class Barrel : MonoBehaviour
   private bool barrelMovingRight = true;
   [SerializeField] float chanceToTakeLadder;
   private bool onLadder = false;
+  private List<Collider2D> platforms;
 
   void Start()
   {
     barrelRb = gameObject.GetComponent<Rigidbody2D>();
+    GetComponent<SpriteRenderer>().sortingOrder = 2;
   }
 
   void Update()
@@ -23,7 +28,24 @@ public class Barrel : MonoBehaviour
   {
     HandleBarrelRoll(collision);
     BarrelCleanUp(collision);
-    // HandleLadder(collision);
+    HandleLadder(collision);
+  }
+
+  void OnTriggerExit2D(Collider2D collision)
+  {
+    if (collision.gameObject.CompareTag("BarrelUseLadder") && onLadder)
+    {
+      ToggleGroundCollisions(true);
+      barrelMovingRight = !barrelMovingRight;
+    }
+  }
+
+  void OnCollisionEnter2D(Collision2D collision)
+  {
+    if (collision.gameObject.CompareTag("Platform") && onLadder)
+    {
+      onLadder = false;
+    }
   }
 
   /// <summary>
@@ -73,16 +95,52 @@ public class Barrel : MonoBehaviour
     }
   }
 
-  // private void HandleLadder(Collider2D collision)
-  // {
-  //   if (collision.gameObject.CompareTag("BarrelUseLadder"))
-  //   {
-  //     int randomNum = Random.Range(0, 100);
-  //     if (randomNum > (chanceToTakeLadder * 100))
-  //     {
-  //       onLadder = true;
-  //     }
-  //   }
-  // }
+  private void HandleLadder(Collider2D collision)
+  {
+    if (collision.gameObject.CompareTag("BarrelUseLadder"))
+    {
+      int randomNum = Random.Range(0, 100);
+      if (randomNum > (chanceToTakeLadder * 100))
+      {
+        Vector3 targetPosition = collision.bounds.center;
+        StartCoroutine(SmoothMoveToLadder(targetPosition));
+      }
+    }
+  }
+
+
+  private void ToggleGroundCollisions(bool toggle)
+  {
+    Collider2D barrelCollider = GetComponent<Collider2D>();
+    if (barrelCollider == null) return;
+
+    var objs = GameObject.FindGameObjectsWithTag("Platform");
+    foreach (var obj in objs)
+    {
+      Collider2D platformCollider = obj.GetComponent<Collider2D>();
+      if (platformCollider != null)
+      {
+        Physics2D.IgnoreCollision(barrelCollider, platformCollider, !toggle);
+      }
+    }
+  }
+
+  private IEnumerator SmoothMoveToLadder(Vector3 targetPosition)
+  {
+    float duration = 0.2f;
+    float elapsedTime = 0f;
+    Vector3 startPosition = transform.position;
+
+    while (elapsedTime < duration)
+    {
+      transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / duration);
+      elapsedTime += Time.deltaTime;
+      yield return null;
+    }
+
+    transform.position = targetPosition; 
+    onLadder = true;
+    ToggleGroundCollisions(false);
+  }
 
 }
