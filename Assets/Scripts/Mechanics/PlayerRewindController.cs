@@ -1,20 +1,41 @@
-﻿
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
+using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable>
 {
-    [SerializeField] private float rewindRange = 100f;
     [SerializeField] private LineRenderer sceneLineRenderer;
+
+    private Camera mainCamera;
+    private Texture2D rewindCursor;
+    private Vector2 cursorHotspot;
+    
     public bool IsRewinding { get; private set; }
     public bool RewindActive { get; private set; }
 
+    public UnityEvent<bool> OnRewindToggle { get; } = new();
+
     private Rewindable rewoundObject;
     private Rewindable focusRewindable;
+
+    private ParticleSystem hitParticles;
+    private ParticleSystem lineParticles;
     
     private void Awake()
     {
+        mainCamera = Camera.main;
+        
+        var rewindIndicator = transform.Find("RewindIndicator");
+        hitParticles = rewindIndicator?.transform.Find("HitParticles")?.GetComponent<ParticleSystem>();
+        lineParticles = rewindIndicator?.transform.Find("LineParticles")?.GetComponent<ParticleSystem>();
+        
+        rewindCursor = Resources.Load("Sprites/RewindCursor") as Texture2D;
+        if (rewindCursor)
+        {
+            cursorHotspot = new Vector2(rewindCursor.width / 2f, rewindCursor.height / 2f);
+        }
+        
         ICreationObservable<Rewindable>.Subscribe(this);
     }
 
@@ -32,15 +53,71 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         else
         {
             IsRewinding = !IsRewinding;
-            Time.timeScale = IsRewinding ? 0 : 1;   
+            
+            if (IsRewinding)
+            {
+                Cursor.SetCursor(rewindCursor, cursorHotspot, CursorMode.Auto);
+                Cursor.visible = true;
+            }
+            else
+            {
+                Cursor.SetCursor(null, cursorHotspot, CursorMode.Auto);
+            }
+            
+            OnRewindToggle.Invoke(IsRewinding);
+            DOTween.To(() => Time.timeScale, x => Time.timeScale = x, IsRewinding ? 0 : 1, 1f).SetEase(Ease.Linear).SetUpdate(true);
         }
     }
     
     private void Update()
     {
-       HighlightFocusRewindable();
+        DrawTargetLines();
+        HighlightFocusRewindable();
     }
 
+    private void DrawTargetLines()
+    {
+        if (!hitParticles || !lineParticles) return;
+        if (!IsRewinding)
+        {
+            lineParticles.Stop();
+            hitParticles.Stop();
+            return;
+        }
+        
+        var pos = new Vector3[2];
+        pos[0] = transform.position;
+        if (focusRewindable)
+        {
+            pos[1] = focusRewindable.transform.position;
+        }
+        else
+        {
+            var mousePos = GetMousePositionInWorldCoords();
+            var hit = MousePositionRaycast(Vector2.Distance(pos[0], mousePos));
+            pos[1] = hit.transform? hit.point : mousePos;
+        }
+        
+        var dis = Vector2.Distance(pos[0], pos[1]);
+        var angle = Mathf.Atan2(pos[1].y - pos[0].y, pos[1].x - pos[0].x) * 180 / Mathf.PI;
+        
+        var lineShape = lineParticles.shape;
+        lineShape.position = transform.InverseTransformPoint(Vector3.Lerp(pos[0], pos[1], 0.5f));
+        lineShape.radius = dis / 2;
+        lineShape.rotation = new Vector3(0, 0, angle);
+        
+        var shape = hitParticles.shape;
+        shape.position = transform.InverseTransformPoint(pos[1]);
+
+        var lineMain = lineParticles.main;
+        lineMain.useUnscaledTime = true;
+        var main = hitParticles.main;
+        main.useUnscaledTime = true;
+        
+        if (!lineParticles.isPlaying) lineParticles.Play();
+        if (!hitParticles.isPlaying) hitParticles.Play();
+    }
+    
     private void HighlightFocusRewindable()
     {
         if (focusRewindable == null || !IsRewinding || RewindActive)
@@ -64,10 +141,12 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
             positions[i] = snapshot.Position;
         }
         sceneLineRenderer.SetPositions(positions);
+        sceneLineRenderer.Simplify(0.05f);
     }
 
     private IEnumerator OnRewindableSelected(Rewindable rewindable)
     {
+        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position))) yield break;
         if (RewindActive) yield break;
         rewoundObject = rewindable;
         OnToggleRewind();
@@ -81,7 +160,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private void SetFocusRewindable(Rewindable rewindable)
     {
-        if ((transform.position - rewindable.transform.position).magnitude > rewindRange) return;
+        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position))) return;
         focusRewindable = rewindable;
     }
 
@@ -99,5 +178,28 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     public void OnObservableDestroyed(Rewindable obj)
     {
+        if (obj.Equals(rewoundObject))
+        {
+            rewoundObject.CancelRewind();
+        }
+    }
+
+    private bool IsMouseTargetOccluded(float objectDistance)
+    {
+        var hit = MousePositionRaycast(objectDistance + 1f);
+        return hit.transform != null && Vector2.Distance(transform.position, hit.point) < objectDistance;
+    }
+
+    private RaycastHit2D MousePositionRaycast(float distance = 100)
+    {
+        var mousePos = GetMousePositionInWorldCoords();
+        return Physics2D.Raycast(transform.position, (mousePos - transform.position).normalized, distance, LayerMask.GetMask("Ground"));
+    }
+
+    private Vector3 GetMousePositionInWorldCoords()
+    {
+        var mousePos = Input.mousePosition;
+        mousePos.z = 1;
+        return mainCamera.ScreenToWorldPoint(mousePos);
     }
 }

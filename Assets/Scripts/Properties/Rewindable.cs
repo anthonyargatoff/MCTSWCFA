@@ -58,6 +58,7 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
 
     private void OnDestroy()
     {
+        CancelRewind();
         ICreationObservable<Rewindable>.NotifyDestroyed(this);
     }
     
