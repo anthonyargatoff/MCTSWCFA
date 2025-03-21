@@ -1,13 +1,16 @@
+using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics.Geometry;
 using UnityEngine;
 using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
-
     private Rigidbody2D rb;
     [SerializeField] private float speed;
     [SerializeField] private float maxSpeed;
     [SerializeField] private float friction;
+    [SerializeField] private float hammerDuration = 10f;
+    
     [SerializeField] private RectTransform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float jumpSpeed;
@@ -19,16 +22,18 @@ public class PlayerController : MonoBehaviour
     private bool atLadderTop;
     private bool atLadderBottom;
 
+    private Vector3 baseScale = Vector3.one;
+    
+    public bool UsingHammer { get; private set; }
+
+    public int facingDirection = 1;
+    
     private List<Collider2D> platforms;
     
-    void Awake()
+    private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-    }
-
-    void Update()
-    {
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        baseScale = transform.localScale;
     }
 
     public void OnJump()
@@ -43,6 +48,11 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 input = value.Get<Vector2>();
 
+        if (input.x != 0)
+        {
+            facingDirection = (int) Mathf.Sign(input.x);   
+        }
+        
         if (canClimb && input.y != 0)
         {
             moveInput = input.y;
@@ -85,6 +95,14 @@ public class PlayerController : MonoBehaviour
         {
             atLadderBottom = true;
         }
+        if (other.CompareTag("HammerObject"))
+        {
+            var hammerObject = other.GetComponent<HammerObject>();
+            if (hammerObject == null || UsingHammer) return;
+        
+            hammerObject.Collect();
+            StartCoroutine(UseHammer());   
+        }
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -107,6 +125,12 @@ public class PlayerController : MonoBehaviour
     {
         var colliders = new List<Collider2D>();
         rb.GetContacts(colliders);
+        
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        if (!isClimbing)
+        {
+            transform.localScale = new Vector3(facingDirection * baseScale.x, baseScale.y, baseScale.z);   
+        }
         
         if (isClimbing)
         {
@@ -165,5 +189,21 @@ public class PlayerController : MonoBehaviour
             contact.excludeLayers = !toggle ? LayerMask.GetMask("Player") : LayerMask.GetMask();   
         }
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Ground"), !toggle);
+    }
+
+    private IEnumerator UseHammer()
+    {
+        UsingHammer = true;
+
+        const float inc = 0.1f;
+        float hammerTime = 0;
+        
+        while (UsingHammer && hammerTime <= hammerDuration)
+        {
+            yield return new WaitForSeconds(inc);
+            hammerTime += inc;
+        }
+
+        UsingHammer = false;
     }
 }

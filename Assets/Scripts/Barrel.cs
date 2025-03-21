@@ -37,6 +37,7 @@ public class Barrel : MonoBehaviour
     HandleBarrelRoll(collision);
     BarrelCleanUp(collision);
     // HandleLadder(collision);
+    HandleHammer(collision);
   }
 
   /// <summary>
@@ -98,4 +99,12 @@ public class Barrel : MonoBehaviour
   //   }
   // }
 
+  private void HandleHammer(Collider2D collision)
+  {
+    var hammer = collision.GetComponent<HammerPowerup>();
+    if (!collision.gameObject.CompareTag("HammerHitbox") || !(hammer?.PowerupActive() ?? false)) return;
+    hammer.MakeParticleEffects(transform);
+    Destroy(gameObject);
+    // TODO: Add to the game score
+  }
 }
