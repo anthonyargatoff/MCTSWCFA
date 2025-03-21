@@ -10,6 +10,8 @@ TagManager:
   - Ladder
   - PlatformBarrelWall
   - BarrelUseLadder
+  - HammerObject
+  - HammerHitbox
   - Camera
   layers:
   - Default
