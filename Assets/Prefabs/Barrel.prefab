@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8651605914226125169}
   - component: {fileID: 7791022096978638270}
   - component: {fileID: 8223956315123115494}
+  - component: {fileID: -7537215565803041862}
   m_Layer: 0
   m_Name: Barrel
   m_TagString: Untagged
@@ -168,3 +169,15 @@ MonoBehaviour:
   barrelSpeed: 3
   chanceToFallOff: 0.2
   chanceToTakeLadder: 0.2
+--- !u!114 &-7537215565803041862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3183584493367896612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ccb5ef94fa24aa497ea1a87dfc4c50e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
