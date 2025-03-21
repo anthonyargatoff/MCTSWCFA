@@ -37,7 +37,6 @@ public class DonkeyKong : MonoBehaviour
   {
     while (true)
     {
-      Debug.Log("Spawn");
       Instantiate(fallingBarrel, transform.position, Quaternion.identity);
       yield return new WaitForSeconds(spawnTimer);
     }

@@ -12,6 +12,7 @@ TagManager:
   - BarrelUseLadder
   - InvisibleWall
   - UpDownPlatformTrigger
+  - Barrel
   layers:
   - Default
   - TransparentFX

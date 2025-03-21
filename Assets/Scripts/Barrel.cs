@@ -5,7 +5,7 @@ public class Barrel : MonoBehaviour
   private Rigidbody2D barrelRb;
   [SerializeField] private float barrelSpeed;
   [SerializeField] private float chanceToFallOff;
-  private bool barrelMovingRight = true;
+  public bool barrelMovingRight = true;
   [SerializeField] float chanceToTakeLadder;
   private bool onLadder = false;
 
@@ -17,6 +17,19 @@ public class Barrel : MonoBehaviour
   void Update()
   {
     ApplyBarrelVelocity();
+  }
+
+  void OnCollisionEnter2D(Collision2D collision)
+  {
+    if (collision.gameObject.CompareTag("Barrel"))
+    {
+      // Only has a 50% chance to destroy itself
+      // TODO: Look into a better way to ensure that we only destroy 1 of the barrels
+      if (Random.Range(0, 2) == 0)
+      {
+        Destroy(gameObject);
+      }
+    }
   }
 
   void OnTriggerEnter2D(Collider2D collision)
