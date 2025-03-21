@@ -12,6 +12,7 @@ TagManager:
   - BarrelUseLadder
   - HammerObject
   - HammerHitbox
+  - Camera
   layers:
   - Default
   - TransparentFX
