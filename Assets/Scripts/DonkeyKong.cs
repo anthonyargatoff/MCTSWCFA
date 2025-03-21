@@ -7,8 +7,9 @@ public class DonkeyKong : MonoBehaviour
   [SerializeField] private Rigidbody2D donkeyKongRigidbody;
   [SerializeField] private float donkeyKongSpeed = 5f;
   [SerializeField] private FallingBarrel fallingBarrel;
-  [SerializeField] private float spawnTimer;
   private IEnumerator coroutine;
+  [SerializeField] private float lowerRandomLimit;
+  [SerializeField] private float upperRandomLimit;
 
   void Start()
   {
@@ -37,8 +38,9 @@ public class DonkeyKong : MonoBehaviour
   {
     while (true)
     {
+      float randomWaitTime = Random.Range(lowerRandomLimit, upperRandomLimit);
       Instantiate(fallingBarrel, transform.position, Quaternion.identity);
-      yield return new WaitForSeconds(spawnTimer);
+      yield return new WaitForSeconds(randomWaitTime);
     }
   }
 }
