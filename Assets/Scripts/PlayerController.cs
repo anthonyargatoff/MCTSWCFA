@@ -32,10 +32,6 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
-        if (canClimb)
-        {
-            ladderCenter = new Vector3(currentLadder.transform.position.x, transform.position.y, transform.position.z);
-        }
     }
 
     public void OnJump()
@@ -55,6 +51,7 @@ public class PlayerController : MonoBehaviour
             moveInput = input.y;
             if (!isClimbing)
             {
+                ladderCenter = new Vector3(currentLadder.transform.position.x, transform.position.y, transform.position.z);
                 ToggleGroundCollisions(false);
                 StartCoroutine(SmoothMoveToLadder(ladderCenter));
             }
@@ -102,6 +99,7 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("Ladder"))
         {
             canClimb = false;
+            currentLadder = null;
         }
         if (other.CompareTag("LadderTop"))
         {
@@ -179,7 +177,7 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator SmoothMoveToLadder(Vector3 targetPosition)
     {
-        float duration = 0.2f;
+        float duration = 0.05f;
         float elapsedTime = 0f;
         Vector3 startPosition = transform.position;
 
