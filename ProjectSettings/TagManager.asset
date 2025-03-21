@@ -13,6 +13,9 @@ TagManager:
   - HammerObject
   - HammerHitbox
   - Camera
+  - InvisibleWall
+  - UpDownPlatformTrigger
+  - Barrel
   layers:
   - Default
   - TransparentFX
