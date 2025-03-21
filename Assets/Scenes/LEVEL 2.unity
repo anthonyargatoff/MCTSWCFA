@@ -154,7 +154,8 @@ MonoBehaviour:
   donkeyKongRigidbody: {fileID: 7532366}
   donkeyKongSpeed: 5
   fallingBarrel: {fileID: 5470320074104816962, guid: 37601daa69565b8ac9b7106fb77557b4, type: 3}
-  spawnTimer: 1
+  lowerRandomLimit: 0.2
+  upperRandomLimit: 3
 --- !u!61 &7532365
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -243,7 +244,8 @@ MonoBehaviour:
   donkeyKongRigidbody: {fileID: 7532366}
   donkeyKongSpeed: 5
   fallingBarrel: {fileID: 0}
-  spawnTimer: 0
+  lowerRandomLimit: 0
+  upperRandomLimit: 0
 --- !u!4 &7532368
 Transform:
   m_ObjectHideFlags: 0
