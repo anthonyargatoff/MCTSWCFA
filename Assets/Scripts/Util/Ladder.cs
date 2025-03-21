@@ -20,14 +20,15 @@ public class Ladder : MonoBehaviour
     private void AdaptTexture()
     {
         var height = ladderTop.transform.localPosition.y - ladderBottom.transform.localPosition.y;
-        var sizeDelta = ladderBottom.transform.localScale.y + ladderTop.transform.localScale.y;
+        var sizeDelta = ladderBottom.transform.localScale.y;
         
         var spriteRenderer = texture.GetComponent<SpriteRenderer>();
         spriteRenderer.size = new Vector2(1, height);
         boxCollider.size = spriteRenderer.size;
+        boxCollider.size += new Vector2(0, 0.5f);
         
         texture.transform.localPosition = new Vector3(0, sizeDelta, 0);
-        boxCollider.offset = new Vector2(0, sizeDelta);
+        boxCollider.offset = new Vector2(0, sizeDelta + 0.5f);
         
         if (barrelTrigger)
         {
