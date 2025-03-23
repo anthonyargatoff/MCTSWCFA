@@ -55,11 +55,19 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
             
             if (IsRewinding)
             {
+                if (AudioManager.instance)
+                {
+                    AudioManager.instance.StartTimeWarp();
+                }
                 Cursor.SetCursor(rewindCursor, cursorHotspot, CursorMode.Auto);
                 Cursor.visible = true;
             }
             else
             {
+                if (AudioManager.instance)
+                {
+                    AudioManager.instance.EndTimeWarp();
+                }
                 Cursor.SetCursor(null, cursorHotspot, CursorMode.Auto);
             }
             

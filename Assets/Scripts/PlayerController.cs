@@ -44,6 +44,10 @@ public class PlayerController : MonoBehaviour
         if (isGrounded)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpSpeed);
+            if (AudioManager.instance)
+            {
+                AudioManager.instance.PlaySound(AudioManager.instance.jumpClip);
+            }
         }
     }
 
@@ -55,7 +59,7 @@ public class PlayerController : MonoBehaviour
         {
             facingDirection = (int) Mathf.Sign(input.x);   
         }
-        
+
         if (canClimb && input.y != 0)
         {
             moveInput = input.y;
@@ -64,8 +68,12 @@ public class PlayerController : MonoBehaviour
                 ladderCenter = new Vector3(currentLadder.transform.position.x, transform.position.y, transform.position.z);
                 ToggleGroundCollisions(false);
                 StartCoroutine(SmoothMoveToLadder(ladderCenter));
+                if (AudioManager.instance)
+                {
+                    AudioManager.instance.PlaySound(AudioManager.instance.ladderClip);
+                }
             }
-            
+
             isClimbing = true;
 
             rb.gravityScale = 0;
@@ -84,6 +92,10 @@ public class PlayerController : MonoBehaviour
             isClimbing = false;
 
             rb.gravityScale = 1;
+            if (AudioManager.instance && input.x != 0)
+            {
+                AudioManager.instance.PlaySound(AudioManager.instance.moveClip);
+            }
         }
     }
 
@@ -220,11 +232,18 @@ public class PlayerController : MonoBehaviour
 
         const float inc = 0.1f;
         float hammerTime = 0;
-        
+        if (AudioManager.instance)
+        {
+            AudioManager.instance.PlayHammerMusic();
+        }
         while (UsingHammer && hammerTime <= hammerDuration)
         {
             yield return new WaitForSeconds(inc);
             hammerTime += inc;
+        }
+        if (AudioManager.instance)
+        {
+            AudioManager.instance.StopHammerMusic();
         }
 
         UsingHammer = false;
