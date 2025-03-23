@@ -32,7 +32,10 @@ public class Ladder : MonoBehaviour
         
         if (barrelTrigger)
         {
-            barrelTrigger.transform.localPosition = new Vector3(0, sizeDelta, 0);   
+            var box = barrelTrigger.GetComponent<BoxCollider2D>();
+            var ratio = barrelTrigger.transform.localScale.y / barrelTrigger.transform.lossyScale.y;
+            barrelTrigger.transform.localPosition = new Vector3(0, height / 2 + barrelTrigger.transform.localScale.y / (2*ratio) - 0.5f, 0);
+            box.size = new Vector2(box.size.x, height);
         }
     }
 }
