@@ -29,6 +29,7 @@ public class Barrel : MonoBehaviour
     HandleBarrelRoll(collision);
     BarrelCleanUp(collision);
     HandleLadder(collision);
+    HandleHammer(collision);
   }
 
   void OnTriggerExit2D(Collider2D collision)
@@ -46,7 +47,6 @@ public class Barrel : MonoBehaviour
     {
       onLadder = false;
     }
-    HandleHammer(collision);
   }
 
   /// <summary>

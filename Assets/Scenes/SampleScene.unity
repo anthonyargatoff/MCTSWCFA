@@ -3410,6 +3410,14 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -0.504
       objectReference: {fileID: 0}
+    - target: {fileID: 2548560001037103838, guid: 48be5d7bd9a4552449dc1227b3a038ac, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2548560001037103838, guid: 48be5d7bd9a4552449dc1227b3a038ac, type: 3}
+      propertyPath: m_ExcludeLayers.m_Bits
+      value: 128
+      objectReference: {fileID: 0}
     - target: {fileID: 3493126842356176965, guid: 48be5d7bd9a4552449dc1227b3a038ac, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -3472,11 +3480,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3493126842356176965, guid: 48be5d7bd9a4552449dc1227b3a038ac, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -10.19
+      value: -10.46
       objectReference: {fileID: 0}
     - target: {fileID: 3493126842356176965, guid: 48be5d7bd9a4552449dc1227b3a038ac, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -7.77
+      value: -7.75
       objectReference: {fileID: 0}
     - target: {fileID: 3493126842356176965, guid: 48be5d7bd9a4552449dc1227b3a038ac, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
