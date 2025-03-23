@@ -13,8 +13,12 @@ public class Barrel : MonoBehaviour
   private bool onLadder = false;
   private List<Collider2D> platforms;
 
+  private Rewindable rewindableScript;
+  private Collider2D lastLadder = null;
+
   void Start()
   {
+    rewindableScript = GetComponent<Rewindable>();
     barrelRb = gameObject.GetComponent<Rigidbody2D>();
     GetComponent<SpriteRenderer>().sortingOrder = 2;
   }
@@ -34,10 +38,13 @@ public class Barrel : MonoBehaviour
 
   void OnTriggerExit2D(Collider2D collision)
   {
-    if (collision.gameObject.CompareTag("BarrelUseLadder") && onLadder)
+    if (collision.gameObject.CompareTag("BarrelUseLadder"))
     {
-      ToggleGroundCollisions(true);
-      barrelMovingRight = !barrelMovingRight;
+      barrelMovingRight = onLadder || rewindableScript.isRewinding ? !barrelMovingRight : barrelMovingRight;
+      if (onLadder)
+      {
+        ToggleGroundCollisions(true);
+      }
     }
   }
 
@@ -55,7 +62,7 @@ public class Barrel : MonoBehaviour
   /// <param name="collision"></param>
   private void HandleBarrelRoll(Collider2D collision)
   {
-    if (collision.gameObject.CompareTag("PlatformBarrelWall"))
+    if (collision.gameObject.CompareTag("PlatformBarrelWall") && !rewindableScript.isRewinding)
     {
       int randomNum = Random.Range(0, 100);
       if (randomNum > (chanceToFallOff * 100))
@@ -70,6 +77,8 @@ public class Barrel : MonoBehaviour
   /// </summary>
   private void ApplyBarrelVelocity()
   {
+    if (rewindableScript.isRewinding) return;
+    
     if (barrelMovingRight)
     {
       barrelRb.linearVelocityX = barrelSpeed;
@@ -98,15 +107,21 @@ public class Barrel : MonoBehaviour
 
   private void HandleLadder(Collider2D collision)
   {
-    if (collision.gameObject.CompareTag("BarrelUseLadder"))
+    if (!collision.gameObject.CompareTag("BarrelUseLadder")) return;
+    if (rewindableScript.isRewinding)
     {
-      int randomNum = Random.Range(0, 100);
-      if (randomNum > (chanceToTakeLadder * 100))
-      {
-        Vector3 targetPosition = collision.bounds.center;
-        StartCoroutine(SmoothMoveToLadder(targetPosition));
-      }
+      onLadder = transform.position.y < (collision.transform.position.y + collision.transform.lossyScale.y / 2);
+      return;
     }
+
+    // Prevent barrel from reusing short ladders; loop
+    if (collision.Equals(lastLadder)) return;
+    lastLadder = collision;
+    
+    var randomNum = Random.Range(0, 100);
+    if (randomNum < chanceToTakeLadder * 100) return;
+    var targetPosition = collision.bounds.center;
+    StartCoroutine(SmoothMoveToLadder(targetPosition));
   }
 
 

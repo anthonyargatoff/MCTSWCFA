@@ -29,8 +29,8 @@ public class PlayerController : MonoBehaviour
     
     public bool UsingHammer { get; private set; }
 
-    public int facingDirection = 1;
-    
+    public int facingDirection { get; private set; } = 1;
+
     private List<Collider2D> platforms;
     
     private void Awake()

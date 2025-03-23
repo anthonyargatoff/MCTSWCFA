@@ -6,7 +6,7 @@ using UnityEngine.Events;
 public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable>
 {
     [SerializeField] private LineRenderer sceneLineRenderer;
-
+    
     private Camera mainCamera;
     private Texture2D rewindCursor;
     private Vector2 cursorHotspot;
@@ -18,7 +18,6 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private Rewindable rewoundObject;
     private Rewindable focusRewindable;
-
     private ParticleSystem hitParticles;
     private ParticleSystem lineParticles;
     
@@ -100,14 +99,21 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         
         var dis = Vector2.Distance(pos[0], pos[1]);
         var angle = Mathf.Atan2(pos[1].y - pos[0].y, pos[1].x - pos[0].x) * 180 / Mathf.PI;
+
+        var absScale = new Vector3(
+            Mathf.Abs(transform.lossyScale.x),
+            Mathf.Abs(transform.lossyScale.y),
+            Mathf.Abs(transform.lossyScale.z)
+        );
+        var worldToTransformMatrix = Matrix4x4.TRS(transform.position,transform.rotation, absScale).inverse;
         
         var lineShape = lineParticles.shape;
-        lineShape.position = transform.InverseTransformPoint(Vector3.Lerp(pos[0], pos[1], 0.5f));
+        lineShape.position = worldToTransformMatrix.MultiplyPoint3x4(Vector3.Lerp(pos[0], pos[1], 0.5f));
         lineShape.radius = dis / 2;
         lineShape.rotation = new Vector3(0, 0, angle);
-        
+       
         var shape = hitParticles.shape;
-        shape.position = transform.InverseTransformPoint(pos[1]);
+        shape.position = worldToTransformMatrix.MultiplyPoint3x4(pos[1]);
 
         var lineMain = lineParticles.main;
         lineMain.useUnscaledTime = true;
