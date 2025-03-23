@@ -46,6 +46,7 @@ public class Barrel : MonoBehaviour
     {
       onLadder = false;
     }
+    HandleHammer(collision);
   }
 
   /// <summary>
@@ -138,9 +139,17 @@ public class Barrel : MonoBehaviour
       yield return null;
     }
 
-    transform.position = targetPosition; 
+    transform.position = targetPosition;
     onLadder = true;
     ToggleGroundCollisions(false);
   }
 
+  private void HandleHammer(Collider2D collision)
+  {
+    var hammer = collision.GetComponent<HammerPowerup>();
+    if (!collision.gameObject.CompareTag("HammerHitbox") || !(hammer?.PowerupActive() ?? false)) return;
+    hammer.MakeParticleEffects(transform);
+    Destroy(gameObject);
+    // TODO: Add to the game score
+  }
 }
