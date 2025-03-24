@@ -25,19 +25,6 @@ public class HammerPowerup : MonoBehaviour
         pc = transform.parent.GetComponent<PlayerController>();
     }
 
-    private SpriteRenderer sr;
-    private void Update()
-    {
-        if (sr == null)
-        {
-            sr = GetComponent<SpriteRenderer>();
-        }
-        else
-        {
-            sr.enabled = PowerupActive();
-        }
-    }
-
     public bool PowerupActive()
     {
         return pc?.UsingHammer ?? false;
