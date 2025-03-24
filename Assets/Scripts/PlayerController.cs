@@ -131,6 +131,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        Debug.Log(isGrounded);
         var colliders = new List<Collider2D>();
         rb.GetContacts(colliders);
         
