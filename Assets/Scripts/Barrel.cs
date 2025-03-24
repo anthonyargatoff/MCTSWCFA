@@ -8,7 +8,7 @@ public class Barrel : MonoBehaviour
   private Rigidbody2D barrelRb;
   [SerializeField] private float barrelSpeed;
   [SerializeField] private float chanceToFallOff;
-  private bool barrelMovingRight = true;
+  public bool barrelMovingRight = true;
   [SerializeField] float chanceToTakeLadder;
   private bool onLadder = false;
   private List<Collider2D> platforms;
@@ -28,6 +28,24 @@ public class Barrel : MonoBehaviour
     ApplyBarrelVelocity();
   }
 
+  void OnCollisionEnter2D(Collision2D collision)
+  {
+    if (collision.gameObject.CompareTag("Barrel"))
+    {
+      // Only has a 50% chance to destroy itself
+      // TODO: Look into a better way to ensure that we only destroy 1 of the barrels
+      if (Random.Range(0, 2) == 0)
+      {
+        Destroy(gameObject);
+      }
+    }
+
+    if (collision.gameObject.CompareTag("Platform") && onLadder)
+    {
+      onLadder = false;
+    }
+  }
+
   void OnTriggerEnter2D(Collider2D collision)
   {
     HandleBarrelRoll(collision);
@@ -45,14 +63,6 @@ public class Barrel : MonoBehaviour
       {
         ToggleGroundCollisions(true);
       }
-    }
-  }
-
-  void OnCollisionEnter2D(Collision2D collision)
-  {
-    if (collision.gameObject.CompareTag("Platform") && onLadder)
-    {
-      onLadder = false;
     }
   }
 
@@ -78,7 +88,7 @@ public class Barrel : MonoBehaviour
   private void ApplyBarrelVelocity()
   {
     if (rewindableScript.isRewinding) return;
-    
+
     if (barrelMovingRight)
     {
       barrelRb.linearVelocityX = barrelSpeed;
@@ -117,7 +127,7 @@ public class Barrel : MonoBehaviour
     // Prevent barrel from reusing short ladders; loop
     if (collision.Equals(lastLadder)) return;
     lastLadder = collision;
-    
+
     var randomNum = Random.Range(0, 100);
     if (randomNum < chanceToTakeLadder * 100) return;
     var targetPosition = collision.bounds.center;
