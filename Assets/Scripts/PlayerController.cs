@@ -108,7 +108,7 @@ public class PlayerController : MonoBehaviour
         }
         if (other.CompareTag("HammerObject"))
         {
-            var hammerObject = other.GetComponent<HammerObject>();
+            var hammerObject = other.GetComponent<Collectible>();
             if (hammerObject == null || UsingHammer) return;
         
             hammerObject.Collect();
@@ -247,5 +247,10 @@ public class PlayerController : MonoBehaviour
         }
 
         UsingHammer = false;
+    }
+
+    public bool IsAboveCurrentLadder()
+    {
+        return currentLadder && (currentLadder.transform.Find("LadderTop")?.transform.position.y ?? transform.position.y) < transform.position.y;
     }
 }

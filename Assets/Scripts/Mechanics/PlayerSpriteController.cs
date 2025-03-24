@@ -172,7 +172,7 @@ public class PlayerSpriteController: MonoBehaviour
             } else
             {
                 var movedY = Mathf.Abs(transform.position.y - lastY) > 0.01f;
-                nextSprite = movedY ? $"climb{(climbFrame ? 0 : 1)}" : controller.atLadderTop && currentSprite.Contains("climb") ? "idle" : currentSprite;
+                nextSprite = movedY ? $"climb{(climbFrame ? 0 : 1)}" : controller.atLadderTop && controller.IsAboveCurrentLadder() && currentSprite.Contains("climb") ? "idle" : currentSprite;
             }
         } else if (!controller.isGrounded)
         {

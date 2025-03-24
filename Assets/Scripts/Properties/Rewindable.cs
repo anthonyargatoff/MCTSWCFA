@@ -128,16 +128,20 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
             var time = Mathf.Min(Mathf.Max(snapshot.TimeDelta, 0.01f),0.1f);
             if (!HasMoved(snapshot, lastSnapshot)) continue;
             
-            transform.DOMove(snapshot.Position, time).SetEase(Ease.Linear);
-            transform.DORotateQuaternion(snapshot.Rotation, time).SetEase(Ease.Linear);
-            transform.DOScale(snapshot.Scale, time).SetEase(Ease.Linear);
+            transform.DOMove(snapshot.Position, time).SetEase(Ease.Linear).SetLink(gameObject);
+            transform.DORotateQuaternion(snapshot.Rotation, time).SetEase(Ease.Linear).SetLink(gameObject);
+            transform.DOScale(snapshot.Scale, time).SetEase(Ease.Linear).SetLink(gameObject);
             
             yield return new WaitForSeconds(time);
             lastSnapshot = snapshot;
         } while (snapshotsToUse.Count > 0 && !forceCancelRewind);
-        activePfx.Stop();
-        endPfx.Play();
-        
+
+        if (activePfx && endPfx)
+        {
+            activePfx.Stop();
+            endPfx.Play();
+        }
+
         forceCancelRewind = false;
         snapshots.RemoveAll(snapshot => snapshotsToRemove.Find(s => s.Equals(snapshot)) != null);
         isRewinding = false;

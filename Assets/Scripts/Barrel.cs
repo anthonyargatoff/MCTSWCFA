@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class Barrel : MonoBehaviour
 {
+  private GameObject particleEffects;
   private Rigidbody2D barrelRb;
   [SerializeField] private float barrelSpeed;
   [SerializeField] private float chanceToFallOff;
@@ -16,6 +17,14 @@ public class Barrel : MonoBehaviour
   private Rewindable rewindableScript;
   private Collider2D lastLadder = null;
 
+  private bool isQuitting;
+  
+  void Awake()
+  {
+    Application.quitting += () => isQuitting = true;
+    particleEffects = Resources.Load<GameObject>("ParticleEffects/BarrelParticles");
+  }
+  
   void Start()
   {
     rewindableScript = GetComponent<Rewindable>();
@@ -32,17 +41,20 @@ public class Barrel : MonoBehaviour
   {
     if (collision.gameObject.CompareTag("Barrel"))
     {
-      // Only has a 50% chance to destroy itself
-      // TODO: Look into a better way to ensure that we only destroy 1 of the barrels
-      if (Random.Range(0, 2) == 0)
-      {
-        Destroy(gameObject);
-      }
+      Destroy(gameObject);
     }
 
     if (collision.gameObject.CompareTag("Platform") && onLadder)
     {
       onLadder = false;
+    }
+  }
+
+  private void OnDestroy()
+  {
+    if (!isQuitting)
+    {
+      Instantiate(particleEffects, transform.position, Quaternion.identity); 
     }
   }
 
@@ -171,9 +183,8 @@ public class Barrel : MonoBehaviour
 
   private void HandleHammer(Collider2D collision)
   {
-    var hammer = collision.GetComponent<HammerPowerup>();
-    if (!collision.gameObject.CompareTag("HammerHitbox") || !(hammer?.PowerupActive() ?? false)) return;
-    hammer.MakeParticleEffects(transform);
+    var player = collision.transform.parent?.GetComponent<PlayerController>();
+    if (!collision.gameObject.CompareTag("HammerHitbox") || !player || !player.UsingHammer) return;
     Destroy(gameObject);
     // TODO: Add to the game score
   }

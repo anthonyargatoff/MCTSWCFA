@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class HammerObject : MonoBehaviour
+public class Collectible : MonoBehaviour
 {
     public void Collect()
     {
