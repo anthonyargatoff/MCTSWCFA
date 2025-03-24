@@ -29,9 +29,7 @@ public class PlayerController : MonoBehaviour
     public bool isDead { get; private set; }
     public bool UsingHammer { get; private set; }
     public int facingDirection { get; private set; } = 1;
-    
     private Vector3 baseScale = Vector3.one;
-
     private List<Collider2D> platforms;
 
     private float lethalFall = 2;
@@ -73,6 +71,7 @@ public class PlayerController : MonoBehaviour
             }
             
             isClimbing = true;
+
             rb.gravityScale = 0;
         }
         else if ((isClimbing && !isGrounded && canClimb) || (isClimbing && canClimb && input.x == 0))
@@ -87,6 +86,7 @@ public class PlayerController : MonoBehaviour
                 ToggleGroundCollisions(true);
             }
             isClimbing = false;
+
             rb.gravityScale = 1;
         }
     }
@@ -94,7 +94,7 @@ public class PlayerController : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Ladder"))
-        { 
+        {
             canClimb = true;
             currentLadder = other;
         }
@@ -210,10 +210,10 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        
+
         foreach (var contact in platforms)
         {
-            contact.excludeLayers = !toggle ? LayerMask.GetMask("Player") : LayerMask.GetMask();   
+            contact.excludeLayers = !toggle ? LayerMask.GetMask("Player") : LayerMask.GetMask();
         }
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Ground"), !toggle);
     }
