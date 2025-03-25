@@ -113,17 +113,21 @@ public class PlayerController : MonoBehaviour
             hammerObject.Collect();
             StartCoroutine(UseHammer());   
         }
-        if (other.CompareTag("Barrel")) // Player dies by collision with barrel
-        {
-            barrelCollision?.Invoke();
-        }
         if (other.gameObject.name == "BarrelCleanUp") // Player falls off screen
         {
             fallOffScreen?.Invoke();
         }
     }
 
-    private void OnTriggerExit2D(Collider2D other)
+  private void OnCollisionEnter2D(Collision2D collision)
+  {
+    if (collision.gameObject.CompareTag("Barrel")) // Player dies by collision with barrel
+    {
+        barrelCollision?.Invoke();
+    }
+  }
+
+  private void OnTriggerExit2D(Collider2D other)
     {
         if (other.CompareTag("Ladder"))
         {
