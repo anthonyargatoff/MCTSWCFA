@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
     private const string MainMenu = "MainMenu";
     private const string LevelPrefix = "Level ";
     private const int NumLevels = 3;
-    private const int StartingLives = 3;
+    private const int StartingLives = 1;
 
     private static GameObject _scoreTextPopup;
 
@@ -152,7 +152,12 @@ public class GameManager : MonoBehaviour
             yield return _loadingScreen.ShowLoadingScreen(respawn);
         }
         StartCoroutine(FadeScreen());
-        GetPlayerController();
+        
+        if (sceneName.Contains(LevelPrefix)) 
+            GetPlayerController();
+        else 
+            _hud.gameObject.SetActive(false);
+        
         Time.timeScale = 1;
     }
 
