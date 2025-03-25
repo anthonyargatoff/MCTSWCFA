@@ -139,6 +139,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   barrelFallSpeed: 5
+  rollingBarrel: {fileID: 8223956315123115494, guid: faa88f2b51810f146893cb5226dfe9b4, type: 3}
 --- !u!50 &5959512629463372552
 Rigidbody2D:
   serializedVersion: 5
