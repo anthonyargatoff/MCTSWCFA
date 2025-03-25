@@ -42,7 +42,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         {
             IsRewinding = false;
             if (rewoundObject) rewoundObject.CancelRewind();
-            enabled = false;
+            Cursor.SetCursor(null, cursorHotspot, CursorMode.Auto);
         };
         
         ICreationObservable<Rewindable>.Subscribe(this);
@@ -55,6 +55,8 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private void OnToggleRewind()
     {
+        if (playerController.isDead) return;
+        
         if (RewindActive)
         {
             rewoundObject.CancelRewind();
@@ -87,7 +89,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
     private void DrawTargetLines()
     {
         if (!hitParticles || !lineParticles) return;
-        if (!IsRewinding)
+        if (!IsRewinding || playerController.isDead)
         {
             lineParticles.Stop();
             hitParticles.Stop();
@@ -136,7 +138,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
     
     private void HighlightFocusRewindable()
     {
-        if (focusRewindable == null || !IsRewinding || RewindActive)
+        if (focusRewindable == null || !IsRewinding || RewindActive || playerController.isDead)
         {
             sceneLineRenderer.positionCount = 0;
             return;
@@ -162,6 +164,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private IEnumerator OnRewindableSelected(Rewindable rewindable)
     {
+        if (playerController.isDead) yield break;
         if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position))) yield break;
         if (RewindActive) yield break;
         rewoundObject = rewindable;
@@ -176,12 +179,14 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private void SetFocusRewindable(Rewindable rewindable)
     {
+        if (playerController.isDead) return;
         if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position))) return;
         focusRewindable = rewindable;
     }
 
     private void RemoveFocusRewindable(Rewindable rewindable)
     {
+        if (playerController.isDead) return;
         focusRewindable = focusRewindable != null && focusRewindable.Equals(rewindable) ? null : focusRewindable;
     }
 

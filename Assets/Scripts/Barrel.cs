@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -18,6 +19,7 @@ public class Barrel : MonoBehaviour
   private Rewindable rewindableScript;
   private Collider2D lastLadder = null;
 
+  private bool awardedPoints;
   private bool isQuitting;
   
   void Awake()
@@ -35,6 +37,7 @@ public class Barrel : MonoBehaviour
 
   void Update()
   {
+    CheckPlayerJumpOver();
     ApplyBarrelVelocity();
   }
 
@@ -42,6 +45,10 @@ public class Barrel : MonoBehaviour
   {
     if (collision.gameObject.CompareTag("Barrel"))
     {
+      if (rewindableScript.isRewinding)
+      {
+        GameManager.IncreaseScore(ScoreEvent.BarrelRewindDestroy, transform);
+      }
       Destroy(gameObject);
     }
 
@@ -187,6 +194,18 @@ public class Barrel : MonoBehaviour
     var player = collision.transform.parent?.GetComponent<PlayerController>();
     if (!collision.gameObject.CompareTag("HammerHitbox") || !player || !player.UsingHammer) return;
     Destroy(gameObject);
-    // TODO: Add to the game score
+    GameManager.IncreaseScore(ScoreEvent.BarrelHammerDestroy, transform);
+  }
+
+  private void CheckPlayerJumpOver()
+  {
+    if (awardedPoints) return;
+    
+    var hit = Physics2D.Raycast(transform.position, Vector2.up, 5f, LayerMask.GetMask("Player","Ground"));
+    if (hit && hit.transform.gameObject.CompareTag("Player") && Mathf.Abs(hit.transform.position.x - transform.position.x) < 0.1f)
+    {
+      awardedPoints = true;
+      GameManager.IncreaseScore(ScoreEvent.BarrelJump, transform);
+    }
   }
 }

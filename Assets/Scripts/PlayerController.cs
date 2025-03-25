@@ -146,6 +146,11 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (GameManager.LevelTimer <= 0)
+        {
+            PlayerDied();
+            return;
+        }
         if (isDead) return;
         
         var colliders = new List<Collider2D>();

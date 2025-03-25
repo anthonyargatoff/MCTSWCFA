@@ -15,16 +15,9 @@ public class LoadingScreen : MonoBehaviour
     private RectTransform times;
     private Image character;
     
-    private static string[] _flavorTexts =
-    {
-        "HERE WE GO!",
-        "LET'S DO THIS!",
-        "I CAN DO THIS!",
-    };
-    
     private static bool _spritesLoaded = false;
     private static int[] _spriteIndices = {
-        0, 1, 2, 3, 9
+        0, 1, 2, 3, 9, 18
     };
     private static Dictionary<int,Sprite> _characterSprites = new();
     
@@ -53,44 +46,83 @@ public class LoadingScreen : MonoBehaviour
         character.sprite = _characterSprites[0];
     }
 
-    public IEnumerator ShowLoadingScreen(int numLives)
+    public IEnumerator ShowLoadingScreen(bool respawn = false)
     {
+        var layoutPos = layout.position;
+        var charPosition = character.rectTransform.anchoredPosition;
         ToggleBackground(true);
-        livesText.SetText($"{numLives}");
-        
-        const float radius = 200f;
-        var goalX = times.position.x - radius;
-        character.rectTransform.position = new Vector2(goalX, character.rectTransform.position.y);
+        livesText.SetText($"{GameManager.CurrentLives}");
 
+        character.enabled = false;
         layout.DOMoveX(layout.sizeDelta.x/2, 1f).SetEase(Ease.InCubic).SetUpdate(true);
         yield return new WaitForSecondsRealtime(1f);
         
+        if (respawn)
+        {
+            character.rectTransform.position += new Vector3(0, layout.sizeDelta.y, 0);
+            character.enabled = true;
+            character.sprite = _characterSprites[18];
+
+            var inc = Vector2.Distance(character.rectTransform.anchoredPosition,charPosition) / 50;
+            while (character.rectTransform.anchoredPosition.y > charPosition.y)
+            {
+                character.rectTransform.anchoredPosition = new Vector2(charPosition.x, character.rectTransform.anchoredPosition.y - inc);
+                yield return new WaitForSecondsRealtime(0.01f);
+            }
+        } else {
+            character.rectTransform.position -= new Vector3(layout.sizeDelta.x / 2,0,0);
+            character.enabled = true;
+            float delta = 0;
+            var sprIdx = 1;
+            var inc = Vector2.Distance(character.rectTransform.anchoredPosition,charPosition) / 100;
+            while (character.rectTransform.anchoredPosition.x < charPosition.x)
+            {
+                character.sprite = _characterSprites[sprIdx];
+                if (delta > 0.1f)
+                {
+                    sprIdx = sprIdx == 1 ? 2 : 1;
+                    delta = 0;
+                }
+                delta += 0.01f;
+                character.rectTransform.anchoredPosition = new Vector2(character.rectTransform.anchoredPosition.x + inc, charPosition.y);
+                yield return new WaitForSecondsRealtime(0.01f);
+            }
+        }
+
+        character.rectTransform.anchoredPosition = charPosition;
+        
         character.sprite = _characterSprites[0];
-        var toSpell = _flavorTexts[Random.Range(0,_flavorTexts.Length)];
+        var toSpell = $"LEVEL {GameManager.CurrentLevel}";
         var current = string.Empty;
         
         while (!current.Equals(toSpell))
         {
             current += toSpell[current.Length];
             flavorText.SetText(current);
-            yield return new WaitForSecondsRealtime(0.2f);
+            yield return new WaitForSecondsRealtime(0.1f);
         }
         character.sprite = _characterSprites[9];
-        yield return new WaitForSecondsRealtime(1f);
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        var sequence = DOTween.Sequence();
+        sequence.SetEase(Ease.InOutSine);
+        sequence.SetUpdate(true);
         
+        var midpoint = Mathf.Lerp(times.position.x, livesText.transform.position.x, .5f);
+        var radius = Mathf.Sqrt(Mathf.Pow(character.rectTransform.position.x - midpoint, 2));
         const int numPoints = 30;
         const float timeStep = 0.05f;
         for (var i = 0; i < numPoints; i++)
         {
-            if (i == 1)
-            {
-                character.sprite = _characterSprites[3];
-            }
             var angle = Mathf.PI - i * (Mathf.PI / numPoints);
-            var pos = new Vector2(times.position.x + Mathf.Cos(angle) * radius, times.position.y + Mathf.Sin(angle) * radius);
-            character.rectTransform.DOMove(pos, timeStep).SetEase(Ease.Linear).SetUpdate(true);
-            yield return new WaitForSecondsRealtime(timeStep);
+            var pos = new Vector2(midpoint + Mathf.Cos(angle) * radius, times.position.y + Mathf.Sin(angle) * radius);
+            sequence.Append(character.rectTransform.DOMove(pos, timeStep));
         }
+        sequence.Play();
+        yield return new WaitForSecondsRealtime(timeStep);
+        character.sprite = _characterSprites[3];
+        yield return new WaitForSecondsRealtime((numPoints - 1) * timeStep);
+        
         character.sprite = _characterSprites[0];
         
         character.rectTransform.DOMoveX(character.rectTransform.position.x + layout.sizeDelta.x/2, 1.5f).SetEase(Ease.Linear).SetUpdate(true);
@@ -106,25 +138,13 @@ public class LoadingScreen : MonoBehaviour
         }
         
         ToggleBackground(false);
-        layout.position = new Vector2(-layout.sizeDelta.x, layout.position.y);
-        character.rectTransform.position = new Vector2(goalX, character.rectTransform.position.y);
+        character.rectTransform.anchoredPosition = charPosition;
+        layout.position = layoutPos;
         flavorText.SetText("");
     }
 
     public void ToggleBackground(bool toggle)
     {
         bg.gameObject.SetActive(toggle);
-    }
-    
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
