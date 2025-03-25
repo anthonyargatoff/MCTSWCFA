@@ -21,6 +21,8 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
     private ParticleSystem hitParticles;
     private ParticleSystem lineParticles;
     
+    private PlayerController playerController;
+    
     private void Awake()
     {
         mainCamera = Camera.main;
@@ -34,6 +36,14 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         {
             cursorHotspot = new Vector2(rewindCursor.width / 2f, rewindCursor.height / 2f);
         }
+
+        playerController = GetComponent<PlayerController>();
+        playerController.OnDeath += () =>
+        {
+            IsRewinding = false;
+            if (rewoundObject) rewoundObject.CancelRewind();
+            enabled = false;
+        };
         
         ICreationObservable<Rewindable>.Subscribe(this);
     }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
 public class PlayerSpriteController: MonoBehaviour
@@ -19,18 +17,19 @@ public class PlayerSpriteController: MonoBehaviour
         [6] = "climb1",
         [7] = "climbover_0",
         [8] = "climbover_1",
-        [9] = "idle_hammer0",
-        [10] = "walk0_hammer0",
-        [11] = "walk1_hammer0",
-        [12] = "idle_hammer1",
-        [13] = "walk0_hammer1",
-        [14] = "walk1_hammer1",
-        [15] = "idle_timewarp",
-        [16] = "dead1",
-        [17] = "dead0",
-        [18] = "hammer0",
-        [19] = "hammer1",
-        [20] = "timewarp",
+        [9] = "win",
+        [10] = "idle_hammer0",
+        [11] = "walk0_hammer0",
+        [12] = "walk1_hammer0",
+        [13] = "idle_hammer1",
+        [14] = "walk0_hammer1",
+        [15] = "walk1_hammer1",
+        [16] = "idle_timewarp",
+        [17] = "dead1",
+        [18] = "dead0",
+        [19] = "hammer0",
+        [20] = "hammer1",
+        [21] = "timewarp",
     };
     private static Dictionary<string,Sprite> spriteDictionary = new();
 
@@ -41,6 +40,7 @@ public class PlayerSpriteController: MonoBehaviour
     
     private bool previousClimbing;
     private bool dyingAnimationPlayed;
+    private bool dyingAnimationFinished;
     private bool playingClimbOver;
 
     private bool climbFrame;
@@ -89,6 +89,14 @@ public class PlayerSpriteController: MonoBehaviour
         }
         
         controller = GetComponent<PlayerController>();
+        controller.OnDeath += () =>
+        {
+            if (!dyingAnimationPlayed)
+            {
+                StartCoroutine(PlayDyingAnimation());
+            }
+        };
+        
         rewindController = GetComponent<PlayerRewindController>();
         sprite = transform.Find("PlayerModel")?.GetComponent<SpriteRenderer>();
      
@@ -143,10 +151,6 @@ public class PlayerSpriteController: MonoBehaviour
         // Death
         if (controller.isDead)
         {
-            if (!dyingAnimationPlayed)
-            {
-                StartCoroutine(PlayDyingAnimation());
-            }
             return;
         }
         
@@ -211,7 +215,6 @@ public class PlayerSpriteController: MonoBehaviour
 
     private IEnumerator PlayDyingAnimation()
     {
-        Time.timeScale = 0f;
         dyingAnimationPlayed = true;
         SwapSprite("dead0");
         
@@ -227,6 +230,8 @@ public class PlayerSpriteController: MonoBehaviour
 
         sprite.transform.rotation = Quaternion.identity;
         SwapSprite("dead1");
+        yield return new WaitForSeconds(1.0f);
+        
     }
 
     private void SwapSprite(string newSpriteName)

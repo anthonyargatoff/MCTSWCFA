@@ -1,9 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Mathematics.Geometry;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody2D rb;
@@ -35,6 +35,9 @@ public class PlayerController : MonoBehaviour
     private float lethalFall = 2;
     private float jumpPeakY;
     private bool isMidair;
+
+    public delegate void OnDeathDelegate();
+    public event OnDeathDelegate OnDeath;
     
     private void Awake()
     {
@@ -88,6 +91,14 @@ public class PlayerController : MonoBehaviour
             isClimbing = false;
 
             rb.gravityScale = 1;
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (other.gameObject.CompareTag("Barrel"))
+        {
+            PlayerDied();
         }
     }
 
@@ -152,7 +163,7 @@ public class PlayerController : MonoBehaviour
                 jumpPeakY = Mathf.Max(jumpPeakY, transform.position.y);
                 if (isGrounded && Mathf.Sqrt(Mathf.Pow(jumpPeakY - transform.position.y,2)) > lethalFall)
                 {
-                    isDead = true;
+                    PlayerDied();
                     return;
                 }
             }
@@ -247,6 +258,13 @@ public class PlayerController : MonoBehaviour
         }
 
         UsingHammer = false;
+    }
+
+    private void PlayerDied()
+    {
+        if (isDead) return;
+        isDead = true;
+        OnDeath?.Invoke();
     }
 
     public bool IsAboveCurrentLadder()

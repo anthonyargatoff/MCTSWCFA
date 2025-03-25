@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class Barrel : MonoBehaviour
@@ -52,7 +53,7 @@ public class Barrel : MonoBehaviour
 
   private void OnDestroy()
   {
-    if (!isQuitting)
+    if (!isQuitting && SceneManager.GetActiveScene().isLoaded)
     {
       Instantiate(particleEffects, transform.position, Quaternion.identity); 
     }
