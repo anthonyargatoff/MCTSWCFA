@@ -325,7 +325,7 @@ GameObject:
   - component: {fileID: 7532364}
   m_Layer: 0
   m_Name: DonkeyKong
-  m_TagString: Untagged
+  m_TagString: Barrel
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -793,6 +793,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   flag: {fileID: 2061905513}
   nextLevel: LEVEL 3
+  player: {fileID: 342902734}
 --- !u!4 &305487791 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1889952014979829652, guid: a18f8be2f8d42321d959f3adb194f920, type: 3}
@@ -871,6 +872,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a18f8be2f8d42321d959f3adb194f920, type: 3}
+--- !u!114 &342902734 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8197203696186668099, guid: 48be5d7bd9a4552449dc1227b3a038ac, type: 3}
+  m_PrefabInstance: {fileID: 2129809227}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c914f658b8aa914ebaa02fcac6e5c60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -2096,8 +2108,8 @@ Transform:
   m_GameObject: {fileID: 1215282124}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -6.78, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.50832, y: -6.28, z: 0}
+  m_LocalScale: {x: 5.3125, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 870556088}
