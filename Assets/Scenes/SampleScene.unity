@@ -1772,6 +1772,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: BarrelSpawner
       objectReference: {fileID: 0}
+    - target: {fileID: 2642002605412390244, guid: bc324b4104b67efa08f40a73326ec03f, type: 3}
+      propertyPath: m_TagString
+      value: Barrel
+      objectReference: {fileID: 0}
     - target: {fileID: 8289673387907270866, guid: bc324b4104b67efa08f40a73326ec03f, type: 3}
       propertyPath: m_LocalScale.x
       value: 1
