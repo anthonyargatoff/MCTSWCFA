@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Mathematics.Geometry;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
@@ -32,6 +33,8 @@ public class PlayerController : MonoBehaviour
     public int facingDirection { get; private set; } = 1;
 
     private List<Collider2D> platforms;
+    public UnityEvent barrelCollision = new UnityEvent();
+    public UnityEvent fallOffScreen = new UnityEvent();
     
     private void Awake()
     {
@@ -109,6 +112,14 @@ public class PlayerController : MonoBehaviour
         
             hammerObject.Collect();
             StartCoroutine(UseHammer());   
+        }
+        if (other.CompareTag("Barrel")) // Player dies by collision with barrel
+        {
+            barrelCollision?.Invoke();
+        }
+        if (other.gameObject.name == "BarrelCleanUp") // Player falls off screen
+        {
+            fallOffScreen?.Invoke();
         }
     }
 
