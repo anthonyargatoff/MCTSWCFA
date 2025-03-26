@@ -22,6 +22,7 @@ public class UpDownPlatform : MonoBehaviour
 
   private void MovePlatform()
   {
+    if (rewindableScript.isRewinding) return;
     if (movingUp)
     {
       platformRigidBody.linearVelocityY = platformSpeed;

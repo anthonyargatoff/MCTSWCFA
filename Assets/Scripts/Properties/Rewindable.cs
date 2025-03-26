@@ -18,7 +18,7 @@ public record TransformSnapshot
     {
         Position = new Vector3(transform.position.x,transform.position.y,transform.position.z);
         Rotation = new Quaternion(transform.rotation.x,transform.rotation.y,transform.rotation.z,transform.rotation.w);
-        Scale = new Vector3(transform.lossyScale.x,transform.lossyScale.y,transform.lossyScale.z);
+        Scale = new Vector3(transform.localScale.x,transform.localScale.y,transform.localScale.z);
         TimeDelta = timeDelta;
     }
 }
@@ -39,10 +39,12 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
     public bool isRewinding { get; private set; }
 
     private bool forceCancelRewind;
-
     public UnityEvent onMouseEnter { get; } = new();
     public UnityEvent onMouseExit { get; } = new();
     public UnityEvent onMouseDown { get; } = new();
+
+    private Collider2D thisCollider;
+    private Camera mainCamera;
 
     private void Awake()
     {
@@ -69,7 +71,7 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (!spriteRenderer) Destroy(this);
     }
-
+    
     private void OnMouseEnter() => onMouseEnter.Invoke();
 
     private void OnMouseExit() => onMouseExit.Invoke();

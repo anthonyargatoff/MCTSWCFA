@@ -7,7 +7,9 @@ using UnityEngine.UI;
 
 public class Barrel : MonoBehaviour
 {
-  private GameObject particleEffects;
+  private static bool particlesLoaded;
+  private static GameObject particleEffects;
+
   private Rigidbody2D barrelRb;
   [SerializeField] private float barrelSpeed;
   [SerializeField] private float chanceToFallOff;
@@ -24,8 +26,12 @@ public class Barrel : MonoBehaviour
   
   void Awake()
   {
+    if (!particlesLoaded)
+    {
+      particleEffects = Resources.Load<GameObject>("ParticleEffects/BarrelParticles");
+      particlesLoaded = true;
+    }
     Application.quitting += () => isQuitting = true;
-    particleEffects = Resources.Load<GameObject>("ParticleEffects/BarrelParticles");
   }
   
   void Start()

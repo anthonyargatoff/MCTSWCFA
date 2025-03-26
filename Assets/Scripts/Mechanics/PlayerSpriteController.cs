@@ -154,6 +154,16 @@ public class PlayerSpriteController: MonoBehaviour
         {
             return;
         }
+
+        if (GameManager.isCompletingLevel)
+        {
+            if (!currentSprite.Equals("win"))
+            {
+                currentSprite = "win";
+                SwapSprite(currentSprite);
+            }
+            return;
+        }
         
         // Rewind State
         if (rewindController.IsRewinding)

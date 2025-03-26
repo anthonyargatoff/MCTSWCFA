@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
     
     private const string MainMenu = "MainMenu";
     private const string VictoryScene = "VictoryScene";
-    private const string LevelPrefix = "Level ";
+    private const string LevelPrefix = "LEVEL ";
     private const int NumLevels = 3;
     private const int StartingLives = 3;
 
@@ -96,6 +96,7 @@ public class GameManager : MonoBehaviour
                 Time.timeScale = isGamePaused ? 0f : 1f;
             }
         }
+        
         _livesText?.SetText($"{CurrentLives}");
         _scoreText?.SetText($"SCORE {CurrentScore}");
         
@@ -156,7 +157,7 @@ public class GameManager : MonoBehaviour
     {
         Physics2D.queriesHitTriggers = true;
         TotalScore = 0;
-        CurrentLevel = 2;
+        CurrentLevel = 1;
         CurrentLives = StartingLives;
 
         Instance.StartCoroutine(Instance.LoadLevel());

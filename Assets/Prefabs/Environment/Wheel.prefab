@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8184236642440962581}
   - component: {fileID: 7790458629843509503}
   - component: {fileID: 6168464476415979253}
+  - component: {fileID: 9073729188801674504}
   m_Layer: 0
   m_Name: Wheel
   m_TagString: Untagged
@@ -102,6 +103,33 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 4
+--- !u!50 &9073729188801674504
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 45389714954416795}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &2522560058985510884
 GameObject:
   m_ObjectHideFlags: 0
@@ -112,7 +140,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9111299410878349800}
   - component: {fileID: 8643758302289412396}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Truss
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -201,6 +229,7 @@ GameObject:
   - component: {fileID: 4196468338990146262}
   - component: {fileID: 89582904842904828}
   - component: {fileID: 4158512397818883532}
+  - component: {fileID: 7536446345257489948}
   m_Layer: 6
   m_Name: Platform (1)
   m_TagString: Untagged
@@ -336,6 +365,33 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 8, y: 1}
   m_EdgeRadius: 0
+--- !u!50 &7536446345257489948
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3445072279325514973}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &3938826778287520274
 GameObject:
   m_ObjectHideFlags: 0
@@ -346,7 +402,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2939238162721671857}
   - component: {fileID: 4408933292328017893}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Axel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -435,6 +491,7 @@ GameObject:
   - component: {fileID: 5832534232492247314}
   - component: {fileID: 6175799544209862517}
   - component: {fileID: 3357747505228961864}
+  - component: {fileID: 6446630227957016579}
   m_Layer: 6
   m_Name: Platform
   m_TagString: Untagged
@@ -570,6 +627,33 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 8, y: 1}
   m_EdgeRadius: 0
+--- !u!50 &6446630227957016579
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5286744003083488618}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &6368714788058749256
 GameObject:
   m_ObjectHideFlags: 0
@@ -582,6 +666,7 @@ GameObject:
   - component: {fileID: 8838366218593920955}
   - component: {fileID: 1480517593239216012}
   - component: {fileID: 1717943984877590029}
+  - component: {fileID: 903935920487264524}
   m_Layer: 6
   m_Name: Platform (2)
   m_TagString: Untagged
@@ -717,6 +802,33 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 8, y: 1}
   m_EdgeRadius: 0
+--- !u!50 &903935920487264524
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6368714788058749256}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!1 &6973026916009733903
 GameObject:
   m_ObjectHideFlags: 0
@@ -727,7 +839,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7922320138917371820}
   - component: {fileID: 7224658239385676020}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Truss (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -816,6 +928,7 @@ GameObject:
   - component: {fileID: 2035522646363339058}
   - component: {fileID: 4811497239652281258}
   - component: {fileID: 6803182684388251149}
+  - component: {fileID: 7936239731691207122}
   m_Layer: 6
   m_Name: Platform (3)
   m_TagString: Untagged
@@ -951,3 +1064,30 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 8, y: 1}
   m_EdgeRadius: 0
+--- !u!50 &7936239731691207122
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8132644816391025409}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0

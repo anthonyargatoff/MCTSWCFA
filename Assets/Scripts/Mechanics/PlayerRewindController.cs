@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
@@ -6,6 +7,8 @@ using UnityEngine.Events;
 public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable>
 {
     [SerializeField] private LineRenderer sceneLineRenderer;
+
+    private List<Rewindable> trackedRewindables = new();
     
     private Camera mainCamera;
     private Texture2D rewindCursor;
@@ -47,6 +50,15 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         GameManager.OnLevelCompleted += CleanupRewind;
         
         ICreationObservable<Rewindable>.Subscribe(this);
+    }
+
+    private void Start()
+    {
+        var allRewindables = FindObjectsByType<Rewindable>(FindObjectsInactive.Include,FindObjectsSortMode.None);
+        foreach (var rewindable in allRewindables)
+        {
+            OnObservableCreated(rewindable);
+        }
     }
 
     private void CleanupRewind()
@@ -167,7 +179,6 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
             positions[i] = snapshot.Position;
         }
         sceneLineRenderer.SetPositions(positions);
-        sceneLineRenderer.Simplify(0.05f);
     }
 
     private IEnumerator OnRewindableSelected(Rewindable rewindable)
@@ -187,7 +198,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private void SetFocusRewindable(Rewindable rewindable)
     {
-        Debug.Log($"Mouse entered {rewindable.gameObject.name}");
+        Debug.Log($"{rewindable.gameObject.name}");
         if (!AllowedToRewind()) return;
         if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position),rewindable)) return;
         focusRewindable = rewindable;
@@ -201,6 +212,8 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     public void OnObservableCreated(Rewindable obj)
     {
+        if (trackedRewindables.Contains(obj)) return;
+        trackedRewindables.Add(obj);
         obj.onMouseDown.AddListener(() => StartCoroutine(OnRewindableSelected(obj)));
         obj.onMouseEnter.AddListener(() => SetFocusRewindable(obj));
         obj.onMouseExit.AddListener(() => RemoveFocusRewindable(obj));
@@ -208,6 +221,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     public void OnObservableDestroyed(Rewindable obj)
     {
+        trackedRewindables.Remove(obj);
         if (obj.Equals(rewoundObject))
         {
             rewoundObject.CancelRewind();
@@ -218,7 +232,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
     {
         var hit = MousePositionRaycast(objectDistance + 1f);
         var hitTooClose = Vector2.Distance(transform.position, hit.point) < objectDistance;
-        if (obj && LayerMask.NameToLayer("Ground") == obj.gameObject.layer) return !obj.transform.Equals(hit.transform);
+        if (obj && LayerMask.NameToLayer("Ground") == obj.gameObject.layer) return !obj.transform.Equals(hit.transform) && !obj.transform.Equals(hit.transform.parent);
         return hit.transform  && hitTooClose;
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -36,11 +37,14 @@ public class PlayerController : MonoBehaviour
     private float jumpPeakY;
     private bool isMidair;
 
+    private Camera mainCamera;
+
     public delegate void OnDeathDelegate();
     public event OnDeathDelegate OnDeath;
     
     private void Awake()
     {
+        mainCamera = Camera.main;
         jumpPeakY = transform.position.y;
         rb = GetComponent<Rigidbody2D>();
         baseScale = transform.localScale;
@@ -57,7 +61,7 @@ public class PlayerController : MonoBehaviour
     public void OnMove(InputValue value)
     {
         Vector2 input = value.Get<Vector2>();
-
+        
         if (input.x != 0)
         {
             facingDirection = (int) Mathf.Sign(input.x);   
@@ -101,6 +105,14 @@ public class PlayerController : MonoBehaviour
             PlayerDied();
             return;
         }
+        if (other.gameObject.CompareTag("HammerObject"))
+        {
+            var hammerObject = other.gameObject.GetComponent<Collectible>();
+            if (hammerObject == null || UsingHammer) return;
+        
+            hammerObject.Collect();
+            StartCoroutine(UseHammer());   
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -122,14 +134,6 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("LadderBottom"))
         {
             atLadderBottom = true;
-        }
-        if (other.CompareTag("HammerObject"))
-        {
-            var hammerObject = other.GetComponent<Collectible>();
-            if (hammerObject == null || UsingHammer) return;
-        
-            hammerObject.Collect();
-            StartCoroutine(UseHammer());   
         }
     }
 
@@ -158,6 +162,13 @@ public class PlayerController : MonoBehaviour
             PlayerDied();
             return;
         }
+
+        if (mainCamera.WorldToScreenPoint(transform.position).y < 0)
+        {
+            PlayerDied();
+            return;
+        }
+        
         if (isDead) return;
         
         var colliders = new List<Collider2D>();
@@ -276,6 +287,8 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+        rb.simulated = false;
+        GetComponent<Collider2D>().enabled = false;
         OnDeath?.Invoke();
     }
 
