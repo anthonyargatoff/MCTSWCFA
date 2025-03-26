@@ -11,6 +11,9 @@ public class DonkeyKong : MonoBehaviour
   [SerializeField] private float lowerRandomLimit;
   [SerializeField] private float upperRandomLimit;
 
+  public delegate void OnBarrelDelegate(float randomWaitTime);
+  public event OnBarrelDelegate OnBarrel;
+  
   void Start()
   {
     coroutine = SpawnBarrels();
@@ -40,6 +43,7 @@ public class DonkeyKong : MonoBehaviour
     {
       float randomWaitTime = Random.Range(lowerRandomLimit, upperRandomLimit);
       Instantiate(fallingBarrel, transform.position, Quaternion.identity);
+      OnBarrel?.Invoke(randomWaitTime);
       yield return new WaitForSeconds(randomWaitTime);
     }
   }

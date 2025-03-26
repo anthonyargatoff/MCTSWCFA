@@ -6,8 +6,11 @@ public class UpDownPlatform : MonoBehaviour
   private Rigidbody2D platformRigidBody;
   private bool movingUp = true;
 
+  private Rewindable rewindableScript;
+
   void Start()
   {
+    rewindableScript = GetComponent<Rewindable>();
     platformRigidBody = GetComponent<Rigidbody2D>();
   }
 
@@ -19,6 +22,7 @@ public class UpDownPlatform : MonoBehaviour
 
   private void MovePlatform()
   {
+    if (rewindableScript.isRewinding) return;
     if (movingUp)
     {
       platformRigidBody.linearVelocityY = platformSpeed;

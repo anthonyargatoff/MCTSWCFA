@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class BarrelSpawner : MonoBehaviour
 {
-  private enum ThrowDirection { Left, Right };
+  public enum ThrowDirection { Left, Right };
   [SerializeField] private ThrowDirection throwDirection;
   [SerializeField] Barrel barrel;
   [SerializeField] float spawnTimer;
@@ -14,6 +14,10 @@ public class BarrelSpawner : MonoBehaviour
   [SerializeField] private bool randomSpawnTime;
   [SerializeField] private float lowerRandomLimit;
   [SerializeField] private float upperRandomLimit;
+  
+  public delegate void OnBarrelDelegate(ThrowDirection direction, float timeUntil);
+  public event OnBarrelDelegate OnBarrel;
+  
   void Start()
   {
     coroutine = SpawnBarrels();
@@ -27,8 +31,10 @@ public class BarrelSpawner : MonoBehaviour
       if (randomSpawnTime)
       {
         float randomWaitTime = Random.Range(lowerRandomLimit, upperRandomLimit);
+        OnBarrel?.Invoke(throwDirection,randomWaitTime);
         yield return new WaitForSeconds(randomWaitTime);
       }
+      
       Barrel newBarrel = Instantiate(barrel, barrelSpawnRef.position, Quaternion.identity);
       Rigidbody2D newBarrelRb = newBarrel.gameObject.GetComponent<Rigidbody2D>();
       if (throwDirection == ThrowDirection.Right)
@@ -43,6 +49,7 @@ public class BarrelSpawner : MonoBehaviour
       }
       if (!randomSpawnTime)
       {
+        OnBarrel?.Invoke(throwDirection,spawnTimer);
         yield return new WaitForSeconds(spawnTimer);
       }
     }

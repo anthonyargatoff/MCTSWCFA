@@ -1,9 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Mathematics.Geometry;
-using Unity.VisualScripting;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
+
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody2D rb;
@@ -19,22 +20,32 @@ public class PlayerController : MonoBehaviour
     private Collider2D currentLadder; 
     private Vector3 ladderCenter;
     private float moveInput;
-    private bool isGrounded;
-    private bool isClimbing;
-    private bool canClimb;
-    private bool atLadderTop;
-    private bool atLadderBottom;
-
-    private Vector3 baseScale = Vector3.one;
     
+    public bool isGrounded { get; private set; }
+    public bool isClimbing { get; private set; }
+    public bool isWalking { get; private set; }
+    public bool canClimb { get; private set; }
+    public bool atLadderTop { get; private set; }
+    public bool atLadderBottom { get; private set; }
+    public bool isDead { get; private set; }
     public bool UsingHammer { get; private set; }
-
     public int facingDirection { get; private set; } = 1;
-
+    private Vector3 baseScale = Vector3.one;
     private List<Collider2D> platforms;
+
+    private float lethalFall = 2;
+    private float jumpPeakY;
+    private bool isMidair;
+
+    private Camera mainCamera;
+
+    public delegate void OnDeathDelegate();
+    public event OnDeathDelegate OnDeath;
     
     private void Awake()
     {
+        mainCamera = Camera.main;
+        jumpPeakY = transform.position.y;
         rb = GetComponent<Rigidbody2D>();
         baseScale = transform.localScale;
     }
@@ -50,7 +61,7 @@ public class PlayerController : MonoBehaviour
     public void OnMove(InputValue value)
     {
         Vector2 input = value.Get<Vector2>();
-
+        
         if (input.x != 0)
         {
             facingDirection = (int) Mathf.Sign(input.x);   
@@ -87,8 +98,30 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (other.gameObject.CompareTag("Barrel") || other.gameObject.CompareTag("DonkeyKong"))
+        {
+            PlayerDied();
+            return;
+        }
+        if (other.gameObject.CompareTag("HammerObject"))
+        {
+            var hammerObject = other.gameObject.GetComponent<Collectible>();
+            if (hammerObject == null || UsingHammer) return;
+        
+            hammerObject.Collect();
+            StartCoroutine(UseHammer());   
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (other.gameObject.CompareTag("Barrel") || other.gameObject.CompareTag("DonkeyKong"))
+        {
+            PlayerDied();
+            return;
+        }
         if (other.CompareTag("Ladder"))
         {
             canClimb = true;
@@ -101,14 +134,6 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("LadderBottom"))
         {
             atLadderBottom = true;
-        }
-        if (other.CompareTag("HammerObject"))
-        {
-            var hammerObject = other.GetComponent<HammerObject>();
-            if (hammerObject == null || UsingHammer) return;
-        
-            hammerObject.Collect();
-            StartCoroutine(UseHammer());   
         }
     }
 
@@ -131,13 +156,41 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (GameManager.isCompletingLevel) return;
+        if (GameManager.LevelTimer <= 0)
+        {
+            PlayerDied();
+            return;
+        }
+
+        if (mainCamera.WorldToScreenPoint(transform.position).y < 0)
+        {
+            PlayerDied();
+            return;
+        }
+        
+        if (isDead) return;
+        
         var colliders = new List<Collider2D>();
         rb.GetContacts(colliders);
         
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        isWalking = isGrounded && Mathf.Abs(moveInput) > 0.05f;
+        
         if (!isClimbing)
         {
-            transform.localScale = new Vector3(facingDirection * baseScale.x, baseScale.y, baseScale.z);   
+            transform.localScale = new Vector3(facingDirection * baseScale.x, baseScale.y, baseScale.z);  
+            
+            if (isMidair)
+            {
+                jumpPeakY = Mathf.Max(jumpPeakY, transform.position.y);
+                if (isGrounded && Mathf.Sqrt(Mathf.Pow(jumpPeakY - transform.position.y,2)) > lethalFall)
+                {
+                    PlayerDied();
+                    return;
+                }
+            }
+            isMidair = !isGrounded;
         }
         
         if (isClimbing)
@@ -228,5 +281,19 @@ public class PlayerController : MonoBehaviour
         }
 
         UsingHammer = false;
+    }
+
+    private void PlayerDied()
+    {
+        if (isDead) return;
+        isDead = true;
+        rb.simulated = false;
+        GetComponent<Collider2D>().enabled = false;
+        OnDeath?.Invoke();
+    }
+
+    public bool IsAboveCurrentLadder()
+    {
+        return currentLadder && (currentLadder.transform.Find("LadderTop")?.transform.position.y ?? transform.position.y) < transform.position.y;
     }
 }

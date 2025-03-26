@@ -1,23 +1,39 @@
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 public class VolumeController : MonoBehaviour
 {
-    [SerializeField] private VolumeProfile defaultVolume;
-    [SerializeField] private VolumeProfile rewindVolume;
+    [SerializeField] private VolumeProfile templateDefaultVolume;
+    [SerializeField] private VolumeProfile templateRewindVolume;
+    [SerializeField] private VolumeProfile templateDeathVolume;
     [SerializeField] private PlayerRewindController rewindController;
+    [SerializeField] private PlayerController playerController;
 
+    private VolumeProfile defaultVolume;
+    private VolumeProfile rewindVolume;
+    private VolumeProfile deathVolume;
+    
     private readonly Dictionary<VolumeProfile, Volume> profileToVolumes = new();
-
+    private Camera mainCamera;
+    
     private void Awake()
     {
+        mainCamera = Camera.main;
+        
+        defaultVolume = Instantiate(templateDefaultVolume);
         var defVol = CreateVolumesForProfile(defaultVolume);
         defVol.weight = 1.0f;
+        
+        rewindVolume = Instantiate(templateRewindVolume);
         CreateVolumesForProfile(rewindVolume);
+        
+        deathVolume = Instantiate(templateDeathVolume);
+        CreateVolumesForProfile(deathVolume);   
         
         rewindController?.OnRewindToggle.AddListener(mode =>
         {
@@ -25,18 +41,14 @@ public class VolumeController : MonoBehaviour
             {
                 StartCoroutine(ChromaticAbberationOscillation());
             }
-            foreach (var kvp in profileToVolumes)
-            {
-                if (mode)
-                {
-                    TweenVolumeWeight(kvp.Key != rewindVolume ? 0 : 1, kvp.Value);   
-                }
-                else
-                {
-                    TweenVolumeWeight(kvp.Key != rewindVolume ? 1 : 0, kvp.Value);
-                }
-            }
+            TransitionVolumes(mode ? rewindVolume : defaultVolume);
         });
+
+        playerController.OnDeath += () =>
+        {
+            TransitionVolumes(deathVolume);
+            StartCoroutine(FadeInDeathVolume());
+        };
     }
 
     private static void TweenVolumeWeight(float end, Volume volume)
@@ -73,5 +85,26 @@ public class VolumeController : MonoBehaviour
             yield return new WaitForSecondsRealtime(1.2f);
         }
         chromaticAbberation.intensity.value = min;
+    }
+
+    private void TransitionVolumes(VolumeProfile volume)
+    {
+        foreach (var kvp in profileToVolumes)
+        {
+            TweenVolumeWeight(kvp.Key != volume ? 0 : 1, kvp.Value); 
+        }
+    }
+
+    private IEnumerator FadeInDeathVolume()
+    {
+        Vignette vignette = null;
+        deathVolume?.TryGet(out vignette);
+        if (!vignette) yield break;
+
+        vignette.intensity.value = 0f;
+        vignette.center.value = mainCamera.WorldToViewportPoint(playerController.transform.position);
+        
+        DOTween.To(() => vignette.intensity.value, x => vignette.intensity.value = x, 1, 1.0f).SetEase(Ease.Linear).SetUpdate(true);
+        yield return new WaitForSecondsRealtime(1.5f);
     }
 }

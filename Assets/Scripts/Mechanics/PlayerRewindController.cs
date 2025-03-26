@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
@@ -6,6 +7,8 @@ using UnityEngine.Events;
 public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable>
 {
     [SerializeField] private LineRenderer sceneLineRenderer;
+
+    private List<Rewindable> trackedRewindables = new();
     
     private Camera mainCamera;
     private Texture2D rewindCursor;
@@ -21,6 +24,8 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
     private ParticleSystem hitParticles;
     private ParticleSystem lineParticles;
     
+    private PlayerController playerController;
+    
     private void Awake()
     {
         mainCamera = Camera.main;
@@ -34,10 +39,35 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         {
             cursorHotspot = new Vector2(rewindCursor.width / 2f, rewindCursor.height / 2f);
         }
+
+        playerController = GetComponent<PlayerController>();
+        playerController.OnDeath += () =>
+        {
+            if (rewoundObject) rewoundObject.CancelRewind();
+            CleanupRewind();
+        };
+        GameManager.OnPaused += CleanupRewind;
+        GameManager.OnLevelCompleted += CleanupRewind;
         
         ICreationObservable<Rewindable>.Subscribe(this);
     }
 
+    private void Start()
+    {
+        var allRewindables = FindObjectsByType<Rewindable>(FindObjectsInactive.Include,FindObjectsSortMode.None);
+        foreach (var rewindable in allRewindables)
+        {
+            OnObservableCreated(rewindable);
+        }
+    }
+
+    private void CleanupRewind()
+    {
+        if (!IsRewinding) return;
+        IsRewinding = false;
+        Cursor.SetCursor(null, cursorHotspot, CursorMode.Auto);
+    }
+    
     private void OnDestroy()
     {
         ICreationObservable<Rewindable>.Unsubscribe(this);
@@ -45,6 +75,8 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private void OnToggleRewind()
     {
+        if (playerController.isDead || !AllowedToRewind()) return;
+        
         if (RewindActive)
         {
             rewoundObject.CancelRewind();
@@ -77,7 +109,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
     private void DrawTargetLines()
     {
         if (!hitParticles || !lineParticles) return;
-        if (!IsRewinding)
+        if (!IsRewinding || !AllowedToRewind())
         {
             lineParticles.Stop();
             hitParticles.Stop();
@@ -126,7 +158,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
     
     private void HighlightFocusRewindable()
     {
-        if (focusRewindable == null || !IsRewinding || RewindActive)
+        if (focusRewindable == null || !IsRewinding || RewindActive || !AllowedToRewind())
         {
             sceneLineRenderer.positionCount = 0;
             return;
@@ -147,12 +179,12 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
             positions[i] = snapshot.Position;
         }
         sceneLineRenderer.SetPositions(positions);
-        sceneLineRenderer.Simplify(0.05f);
     }
 
     private IEnumerator OnRewindableSelected(Rewindable rewindable)
     {
-        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position))) yield break;
+        if (!AllowedToRewind()) yield break;
+        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position),rewindable)) yield break;
         if (RewindActive) yield break;
         rewoundObject = rewindable;
         OnToggleRewind();
@@ -166,17 +198,22 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private void SetFocusRewindable(Rewindable rewindable)
     {
-        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position))) return;
+        Debug.Log($"{rewindable.gameObject.name}");
+        if (!AllowedToRewind()) return;
+        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position),rewindable)) return;
         focusRewindable = rewindable;
     }
 
     private void RemoveFocusRewindable(Rewindable rewindable)
     {
+        if (!AllowedToRewind()) return;
         focusRewindable = focusRewindable != null && focusRewindable.Equals(rewindable) ? null : focusRewindable;
     }
 
     public void OnObservableCreated(Rewindable obj)
     {
+        if (trackedRewindables.Contains(obj)) return;
+        trackedRewindables.Add(obj);
         obj.onMouseDown.AddListener(() => StartCoroutine(OnRewindableSelected(obj)));
         obj.onMouseEnter.AddListener(() => SetFocusRewindable(obj));
         obj.onMouseExit.AddListener(() => RemoveFocusRewindable(obj));
@@ -184,16 +221,19 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     public void OnObservableDestroyed(Rewindable obj)
     {
+        trackedRewindables.Remove(obj);
         if (obj.Equals(rewoundObject))
         {
             rewoundObject.CancelRewind();
         }
     }
 
-    private bool IsMouseTargetOccluded(float objectDistance)
+    private bool IsMouseTargetOccluded(float objectDistance, Rewindable obj = null)
     {
         var hit = MousePositionRaycast(objectDistance + 1f);
-        return hit.transform != null && Vector2.Distance(transform.position, hit.point) < objectDistance;
+        var hitTooClose = Vector2.Distance(transform.position, hit.point) < objectDistance;
+        if (obj && LayerMask.NameToLayer("Ground") == obj.gameObject.layer) return !obj.transform.Equals(hit.transform) && !obj.transform.Equals(hit.transform.parent);
+        return hit.transform  && hitTooClose;
     }
 
     private RaycastHit2D MousePositionRaycast(float distance = 100)
@@ -207,5 +247,10 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         var mousePos = Input.mousePosition;
         mousePos.z = 1;
         return mainCamera.ScreenToWorldPoint(mousePos);
+    }
+
+    private bool AllowedToRewind()
+    {
+        return !playerController.isDead && !GameManager.isGamePaused && !GameManager.isCompletingLevel && !GameManager.isStartingLevel;
     }
 }

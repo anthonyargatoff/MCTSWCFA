@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
@@ -17,7 +18,7 @@ public record TransformSnapshot
     {
         Position = new Vector3(transform.position.x,transform.position.y,transform.position.z);
         Rotation = new Quaternion(transform.rotation.x,transform.rotation.y,transform.rotation.z,transform.rotation.w);
-        Scale = new Vector3(transform.lossyScale.x,transform.lossyScale.y,transform.lossyScale.z);
+        Scale = new Vector3(transform.localScale.x,transform.localScale.y,transform.localScale.z);
         TimeDelta = timeDelta;
     }
 }
@@ -38,10 +39,12 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
     public bool isRewinding { get; private set; }
 
     private bool forceCancelRewind;
-
     public UnityEvent onMouseEnter { get; } = new();
     public UnityEvent onMouseExit { get; } = new();
     public UnityEvent onMouseDown { get; } = new();
+
+    private Collider2D thisCollider;
+    private Camera mainCamera;
 
     private void Awake()
     {
@@ -69,10 +72,7 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
         if (!spriteRenderer) Destroy(this);
     }
     
-    private void OnMouseEnter()
-    {
-        onMouseEnter.Invoke();
-    }
+    private void OnMouseEnter() => onMouseEnter.Invoke();
 
     private void OnMouseExit() => onMouseExit.Invoke();
 
@@ -128,16 +128,20 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
             var time = Mathf.Min(Mathf.Max(snapshot.TimeDelta, 0.01f),0.1f);
             if (!HasMoved(snapshot, lastSnapshot)) continue;
             
-            transform.DOMove(snapshot.Position, time).SetEase(Ease.Linear);
-            transform.DORotateQuaternion(snapshot.Rotation, time).SetEase(Ease.Linear);
-            transform.DOScale(snapshot.Scale, time).SetEase(Ease.Linear);
+            transform.DOMove(snapshot.Position, time).SetEase(Ease.Linear).SetLink(gameObject);
+            transform.DORotateQuaternion(snapshot.Rotation, time).SetEase(Ease.Linear).SetLink(gameObject);
+            transform.DOScale(snapshot.Scale, time).SetEase(Ease.Linear).SetLink(gameObject);
             
             yield return new WaitForSeconds(time);
             lastSnapshot = snapshot;
         } while (snapshotsToUse.Count > 0 && !forceCancelRewind);
-        activePfx.Stop();
-        endPfx.Play();
-        
+
+        if (activePfx && endPfx)
+        {
+            activePfx.Stop();
+            endPfx.Play();
+        }
+
         forceCancelRewind = false;
         snapshots.RemoveAll(snapshot => snapshotsToRemove.Find(s => s.Equals(snapshot)) != null);
         isRewinding = false;

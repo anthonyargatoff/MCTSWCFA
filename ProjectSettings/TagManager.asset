@@ -16,6 +16,7 @@ TagManager:
   - InvisibleWall
   - UpDownPlatformTrigger
   - Barrel
+  - DonkeyKong
   layers:
   - Default
   - TransparentFX
@@ -26,7 +27,7 @@ TagManager:
   - Ground
   - Ladder
   - BarrelLadder
-  - 
+  - PlayerWall
   - 
   - 
   - 
