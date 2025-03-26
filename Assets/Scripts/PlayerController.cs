@@ -96,14 +96,20 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D other)
     {
-        if (other.gameObject.CompareTag("Barrel"))
+        if (other.gameObject.CompareTag("Barrel") || other.gameObject.CompareTag("DonkeyKong"))
         {
             PlayerDied();
+            return;
         }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (other.gameObject.CompareTag("Barrel") || other.gameObject.CompareTag("DonkeyKong"))
+        {
+            PlayerDied();
+            return;
+        }
         if (other.CompareTag("Ladder"))
         {
             canClimb = true;
@@ -146,6 +152,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (GameManager.isCompletingLevel) return;
         if (GameManager.LevelTimer <= 0)
         {
             PlayerDied();

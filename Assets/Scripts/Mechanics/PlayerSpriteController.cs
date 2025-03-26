@@ -119,6 +119,7 @@ public class PlayerSpriteController: MonoBehaviour
 
     private void Update()
     {
+        hammerSpriteGameObject.transform.localScale = new Vector3(Mathf.Sign(transform.localScale.x),1,1);
         HandleSpriteSwap();
         
         if (framesSinceLastWalkUpdate > FramesBetweenWalkUpdate)
@@ -231,7 +232,6 @@ public class PlayerSpriteController: MonoBehaviour
         sprite.transform.rotation = Quaternion.identity;
         SwapSprite("dead1");
         yield return new WaitForSeconds(1.0f);
-        
     }
 
     private void SwapSprite(string newSpriteName)

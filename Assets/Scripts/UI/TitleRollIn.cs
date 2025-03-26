@@ -39,7 +39,7 @@ public class TitleRollIn : MonoBehaviour
             var goalY = img.rectTransform.position.y;
             img.rectTransform.position= new Vector2(img.rectTransform.position.x, img.rectTransform.position.y + rectTransform.sizeDelta.y / ppu);
             img.enabled = true;
-            img.rectTransform.DOMoveY(goalY, 1f + Random.value * 0.5f).SetEase(Ease.OutBounce).SetUpdate(true);
+            img.rectTransform.DOMoveY(goalY, 1f + Random.value * 0.5f).SetEase(Ease.OutBounce).SetUpdate(true).SetLink(img.gameObject);
         }
     }
 

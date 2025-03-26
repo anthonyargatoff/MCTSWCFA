@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -21,9 +22,10 @@ public class GameManager : MonoBehaviour
     private static bool _initialized;
     
     private const string MainMenu = "MainMenu";
+    private const string VictoryScene = "VictoryScene";
     private const string LevelPrefix = "Level ";
     private const int NumLevels = 3;
-    private const int StartingLives = 1;
+    private const int StartingLives = 3;
 
     private static GameObject _scoreTextPopup;
 
@@ -32,12 +34,24 @@ public class GameManager : MonoBehaviour
     public static int CurrentLives { get; private set; }
     public static int CurrentScore { get; private set; }
     
+    public static bool isGamePaused { get; private set; }
+
+    public static bool isCompletingLevel { get; private set; }
+
+    public static bool isStartingLevel { get; private set; }
+
+    public delegate void OnPausedDelegate();
+    public static event OnPausedDelegate OnPaused;
+    
+    public delegate void OnLevelCompletedDelegate();
+    public static event OnLevelCompletedDelegate OnLevelCompleted;
+    
     // 3 minutes
     private const float ClearTimer = 180f;
-    public static float LevelTimer { get; private set; }
+    public static float LevelTimer { get; private set; } = 180f;
     
     private static PlayerController currentController;
-    
+
     private static Canvas _mainUI;
     private static Image _fadePanel;
     private static LoadingScreen _loadingScreen;
@@ -46,6 +60,7 @@ public class GameManager : MonoBehaviour
     private static TextMeshProUGUI _livesText;
     private static TextMeshProUGUI _scoreText;
     private static TextMeshProUGUI _timerText;
+    private static GameObject _pauseMenu;
     
     private void Awake()
     {
@@ -55,6 +70,7 @@ public class GameManager : MonoBehaviour
         _fadePanel = _mainUI.transform.Find("FadePanel").GetComponent<Image>();
         _loadingScreen = _mainUI.transform.Find("LoadingScreen").GetComponent<LoadingScreen>();
         _gameOverScreen = _mainUI.transform.Find("GameOverScreen").GetComponent<GameOverScreen>();
+        _pauseMenu = _mainUI.transform.Find("PauseMenu").gameObject;
         
         _hud = _mainUI.transform.Find("HUD");
         var hudContainer = _hud.Find("Container");
@@ -69,6 +85,11 @@ public class GameManager : MonoBehaviour
     {
         _livesText?.SetText($"{CurrentLives}");
         _scoreText?.SetText($"SCORE {CurrentScore}");
+        
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            TogglePause();
+        }
     }
 
     private float lastTextUpdate = 0f;
@@ -83,14 +104,25 @@ public class GameManager : MonoBehaviour
             }
             return;
         }
+        if (isCompletingLevel) return;
+        
         LevelTimer -= Time.fixedDeltaTime;
         lastTextUpdate += Time.fixedDeltaTime;
+        if (LevelTimer < 0) LevelTimer = 0;
+        
+        UpdateTimer();
+    }
 
+    private void UpdateTimer(bool updateColor = true)
+    {
         var mins = Mathf.FloorToInt(LevelTimer / 60);
         var secs = Mathf.FloorToInt((LevelTimer - mins * 60) % 60);
             
         _timerText?.SetText($"{mins:0}:{secs:00}");
-        if (!_timerText || !(LevelTimer <= 60) || !(lastTextUpdate >= 1f)) return;
+        if (!_timerText) return;
+        _timerText.color = Color.white;
+        
+        if (!updateColor || !(LevelTimer <= 60) || !(lastTextUpdate >= 1f)) return;
         _timerText.color = _timerText.color == Color.white ? Color.red : Color.white;
         lastTextUpdate = 0f;
     }
@@ -109,14 +141,15 @@ public class GameManager : MonoBehaviour
 
     public static void StartGame()
     {
+        Physics2D.queriesHitTriggers = true;
         TotalScore = 0;
-        CurrentLevel = 1;
+        CurrentLevel = 2;
         CurrentLives = StartingLives;
 
         Instance.StartCoroutine(Instance.LoadLevel());
     }
 
-    public static void AdvanceLevel()
+    private static void AdvanceLevel()
     {
         TotalScore += CurrentScore;
         CurrentScore = TotalScore;
@@ -124,7 +157,7 @@ public class GameManager : MonoBehaviour
         
         if (CurrentLevel > NumLevels)
         {
-            // TODO: Win Condition
+            Instance.StartCoroutine(Instance.LoadScene(VictoryScene));
             return;
         }
 
@@ -133,12 +166,15 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator LoadLevel()
     {
+        isStartingLevel = true;
         yield return new WaitForSecondsRealtime(0.5f);
         yield return LoadScene(LevelPrefix + CurrentLevel, true);
+        isStartingLevel = false;
     }
 
     private IEnumerator LoadScene(string sceneName, bool showLoadingScreen = false, bool respawn = false)
     {
+        isGamePaused = false;
         currentController = null;
         LevelTimer = ClearTimer;
         Time.timeScale = 0;
@@ -147,6 +183,7 @@ public class GameManager : MonoBehaviour
 
         if (showLoadingScreen)
         {
+            _hud.gameObject.SetActive(false);
             StartCoroutine(FadeScreen(false));
             StartCoroutine(FadeScreen(true,2f));
             yield return _loadingScreen.ShowLoadingScreen(respawn);
@@ -193,9 +230,34 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            LevelTimer = 0;
             yield return LoadScene(SceneManager.GetActiveScene().name, true, true);
         }
+    }
+
+    public static void CompleteLevel()
+    {
+        Instance.StartCoroutine(OnCompleteLevel());
+    }
+    
+    private static IEnumerator OnCompleteLevel()
+    {
+        if (isCompletingLevel) yield break;
+        OnLevelCompleted?.Invoke();
+        isCompletingLevel = true;
+
+        Time.timeScale = 0;
+        while (LevelTimer > 0)
+        {
+            LevelTimer -= 1;
+            if (LevelTimer < 0) LevelTimer = 0;
+            CurrentScore += 10;
+            Instance.UpdateTimer();
+            yield return new WaitForSecondsRealtime(0.01f);
+        } 
+        
+        AdvanceLevel();
+        
+        isCompletingLevel = false;
     }
 
     private static IEnumerator FadeScreen(bool fadeIn = true, float delay = 1f)
@@ -218,4 +280,29 @@ public class GameManager : MonoBehaviour
     }
 
     public static void IncreaseTimer(int amount) => LevelTimer += amount;
+
+    public void TogglePause()
+    {
+        if (currentController && !currentController.isDead)
+        {
+            isGamePaused = !isGamePaused;
+            _pauseMenu.SetActive(isGamePaused);
+            if (isGamePaused)
+            {
+                OnPaused?.Invoke();
+            }
+            Time.timeScale = isGamePaused ? 0f : 1f;
+        }
+    }
+
+    public void RestartLevel()
+    {
+        CurrentScore = 0;
+        StartCoroutine(LoadScene(SceneManager.GetActiveScene().name, true));
+    }
+
+    public void ReturnToMainMenu()
+    {
+        ResetGame();
+    }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
@@ -68,11 +69,8 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (!spriteRenderer) Destroy(this);
     }
-    
-    private void OnMouseEnter()
-    {
-        onMouseEnter.Invoke();
-    }
+
+    private void OnMouseEnter() => onMouseEnter.Invoke();
 
     private void OnMouseExit() => onMouseExit.Invoke();
 

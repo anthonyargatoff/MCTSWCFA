@@ -29,7 +29,7 @@ public class GameOverScreen : MonoBehaviour
     {
         var goalY = gameOverTextRect.position.y;
         gameOverTextRect.anchoredPosition = new Vector2(gameOverTextRect.anchoredPosition.x, gameOverTextRect.anchoredPosition.y + bg.sizeDelta.y / 2);
-        scoreText.SetText($"SCORE {GameManager.CurrentScore}");
+        scoreText.SetText($"SCORE {GameManager.TotalScore}");
         
         bg.gameObject.SetActive(true);
         overlay.gameObject.SetActive(true);

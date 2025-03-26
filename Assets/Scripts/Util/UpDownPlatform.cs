@@ -6,8 +6,11 @@ public class UpDownPlatform : MonoBehaviour
   private Rigidbody2D platformRigidBody;
   private bool movingUp = true;
 
+  private Rewindable rewindableScript;
+
   void Start()
   {
+    rewindableScript = GetComponent<Rewindable>();
     platformRigidBody = GetComponent<Rigidbody2D>();
   }
 

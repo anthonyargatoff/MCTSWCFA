@@ -40,14 +40,22 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         playerController = GetComponent<PlayerController>();
         playerController.OnDeath += () =>
         {
-            IsRewinding = false;
             if (rewoundObject) rewoundObject.CancelRewind();
-            Cursor.SetCursor(null, cursorHotspot, CursorMode.Auto);
+            CleanupRewind();
         };
+        GameManager.OnPaused += CleanupRewind;
+        GameManager.OnLevelCompleted += CleanupRewind;
         
         ICreationObservable<Rewindable>.Subscribe(this);
     }
 
+    private void CleanupRewind()
+    {
+        if (!IsRewinding) return;
+        IsRewinding = false;
+        Cursor.SetCursor(null, cursorHotspot, CursorMode.Auto);
+    }
+    
     private void OnDestroy()
     {
         ICreationObservable<Rewindable>.Unsubscribe(this);
@@ -55,7 +63,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private void OnToggleRewind()
     {
-        if (playerController.isDead) return;
+        if (playerController.isDead || !AllowedToRewind()) return;
         
         if (RewindActive)
         {
@@ -89,7 +97,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
     private void DrawTargetLines()
     {
         if (!hitParticles || !lineParticles) return;
-        if (!IsRewinding || playerController.isDead)
+        if (!IsRewinding || !AllowedToRewind())
         {
             lineParticles.Stop();
             hitParticles.Stop();
@@ -138,7 +146,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
     
     private void HighlightFocusRewindable()
     {
-        if (focusRewindable == null || !IsRewinding || RewindActive || playerController.isDead)
+        if (focusRewindable == null || !IsRewinding || RewindActive || !AllowedToRewind())
         {
             sceneLineRenderer.positionCount = 0;
             return;
@@ -164,8 +172,8 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private IEnumerator OnRewindableSelected(Rewindable rewindable)
     {
-        if (playerController.isDead) yield break;
-        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position))) yield break;
+        if (!AllowedToRewind()) yield break;
+        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position),rewindable)) yield break;
         if (RewindActive) yield break;
         rewoundObject = rewindable;
         OnToggleRewind();
@@ -179,14 +187,15 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private void SetFocusRewindable(Rewindable rewindable)
     {
-        if (playerController.isDead) return;
-        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position))) return;
+        Debug.Log($"Mouse entered {rewindable.gameObject.name}");
+        if (!AllowedToRewind()) return;
+        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position),rewindable)) return;
         focusRewindable = rewindable;
     }
 
     private void RemoveFocusRewindable(Rewindable rewindable)
     {
-        if (playerController.isDead) return;
+        if (!AllowedToRewind()) return;
         focusRewindable = focusRewindable != null && focusRewindable.Equals(rewindable) ? null : focusRewindable;
     }
 
@@ -205,10 +214,12 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         }
     }
 
-    private bool IsMouseTargetOccluded(float objectDistance)
+    private bool IsMouseTargetOccluded(float objectDistance, Rewindable obj = null)
     {
         var hit = MousePositionRaycast(objectDistance + 1f);
-        return hit.transform != null && Vector2.Distance(transform.position, hit.point) < objectDistance;
+        var hitTooClose = Vector2.Distance(transform.position, hit.point) < objectDistance;
+        if (obj && LayerMask.NameToLayer("Ground") == obj.gameObject.layer) return !obj.transform.Equals(hit.transform);
+        return hit.transform  && hitTooClose;
     }
 
     private RaycastHit2D MousePositionRaycast(float distance = 100)
@@ -222,5 +233,10 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         var mousePos = Input.mousePosition;
         mousePos.z = 1;
         return mainCamera.ScreenToWorldPoint(mousePos);
+    }
+
+    private bool AllowedToRewind()
+    {
+        return !playerController.isDead || !GameManager.isGamePaused || !GameManager.isCompletingLevel || GameManager.isStartingLevel;
     }
 }
