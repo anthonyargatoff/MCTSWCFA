@@ -51,6 +51,7 @@ public class GameManager : MonoBehaviour
     public static float LevelTimer { get; private set; } = 180f;
     
     private static PlayerController currentController;
+    private static PlayerRewindController currentRewindController;
 
     private static Canvas _mainUI;
     private static Image _fadePanel;
@@ -83,6 +84,18 @@ public class GameManager : MonoBehaviour
     
     private void Update()
     {
+        if (currentController && !currentController.isDead && !isCompletingLevel && !isStartingLevel)
+        {
+            if (!currentRewindController)
+            {
+                currentRewindController = currentController.GetComponent<PlayerRewindController>();
+            }
+
+            if (currentRewindController && !currentRewindController.IsRewinding || !currentRewindController)
+            {
+                Time.timeScale = isGamePaused ? 0f : 1f;
+            }
+        }
         _livesText?.SetText($"{CurrentLives}");
         _scoreText?.SetText($"SCORE {CurrentScore}");
         
@@ -203,7 +216,6 @@ public class GameManager : MonoBehaviour
         var player = GameObject.FindGameObjectWithTag("Player");
         if (!player) return;
         
-        
         _hud.gameObject.SetActive(true);
         currentController = player.GetComponent<PlayerController>();
         currentController.OnDeath += () =>
@@ -297,12 +309,16 @@ public class GameManager : MonoBehaviour
 
     public void RestartLevel()
     {
+        isGamePaused = false;
+        _pauseMenu.SetActive(false);
         CurrentScore = 0;
-        StartCoroutine(LoadScene(SceneManager.GetActiveScene().name, true));
+        StartCoroutine(LoadLevel());
     }
 
     public void ReturnToMainMenu()
     {
+        isGamePaused = false;
+        _pauseMenu.SetActive(false);
         ResetGame();
     }
 }

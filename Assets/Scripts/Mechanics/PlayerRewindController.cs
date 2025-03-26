@@ -237,6 +237,6 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private bool AllowedToRewind()
     {
-        return !playerController.isDead || !GameManager.isGamePaused || !GameManager.isCompletingLevel || GameManager.isStartingLevel;
+        return !playerController.isDead && !GameManager.isGamePaused && !GameManager.isCompletingLevel && !GameManager.isStartingLevel;
     }
 }
