@@ -17,6 +17,8 @@ TagManager:
   - UpDownPlatformTrigger
   - Barrel
   - DonkeyKong
+  - HostileEntity
+  - Fire
   layers:
   - Default
   - TransparentFX
@@ -28,9 +30,9 @@ TagManager:
   - Ladder
   - BarrelLadder
   - PlayerWall
-  - 
-  - 
-  - 
+  - Object
+  - StageElement
+  - HostileEntity
   - 
   - 
   - 

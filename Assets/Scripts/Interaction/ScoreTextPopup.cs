@@ -9,7 +9,18 @@ public class ScoreTextPopup : MonoBehaviour
     {
         var tmp = transform.Find("ScoreText").GetComponent<TextMeshProUGUI>();
         tmp.SetText($"{score}");
-        
+        yield return Debris(duration);
+    }
+    
+    public IEnumerator Popup(string text, float duration = 1f)
+    {
+        var tmp = transform.Find("ScoreText").GetComponent<TextMeshProUGUI>();
+        tmp.SetText(text);
+        yield return Debris(duration);
+    }
+
+    private IEnumerator Debris(float duration = 1f)
+    {
         transform.DOMoveY(transform.position.y + 1f, duration).SetLink(gameObject).SetUpdate(true);
         yield return new WaitForSecondsRealtime(duration);
         

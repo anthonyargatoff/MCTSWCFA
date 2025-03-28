@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
@@ -84,7 +85,7 @@ public class GameManager : MonoBehaviour
     
     private void Update()
     {
-        if (currentController && !currentController.isDead && !isCompletingLevel && !isStartingLevel)
+        if (currentController && !currentController.IsDead && !isCompletingLevel && !isStartingLevel)
         {
             if (!currentRewindController)
             {
@@ -129,10 +130,9 @@ public class GameManager : MonoBehaviour
 
     private void UpdateTimer(bool updateColor = true)
     {
-        var mins = Mathf.FloorToInt(LevelTimer / 60);
-        var secs = Mathf.FloorToInt((LevelTimer - mins * 60) % 60);
+        var times = TimeToMinsAndSecs(LevelTimer);
             
-        _timerText?.SetText($"{mins:0}:{secs:00}");
+        _timerText?.SetText($"{times.Item1:0}:{times.Item2:00}");
         if (!_timerText) return;
         _timerText.color = Color.white;
         
@@ -268,6 +268,18 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSecondsRealtime(0.01f);
         } 
         
+        BeastSpriteController beastSprite = null;
+        var candidates = FindObjectsByType<BeastSpriteController>(FindObjectsSortMode.InstanceID);
+        if (candidates.Length > 0)
+        {
+            beastSprite = candidates[0];
+        }
+
+        if (CurrentLevel != NumLevels && beastSprite)
+        {
+            yield return beastSprite.StartEndAnimation();
+        }
+        
         AdvanceLevel();
         
         isCompletingLevel = false;
@@ -287,16 +299,40 @@ public class GameManager : MonoBehaviour
     {
         CurrentScore += amount;
         if (!source) return;
+        
+        if (!_scoreTextPopup)
+        {
+            _scoreTextPopup = Resources.Load<GameObject>("Prefabs/ScoreTextPopup");
+        }
+        if (!_scoreTextPopup) return;
+        
         var popupObject = Instantiate(_scoreTextPopup, source.position, Quaternion.identity);
         var popup = popupObject.GetComponent<ScoreTextPopup>();
         Instance.StartCoroutine(popup.Popup(amount));
     }
 
-    public static void IncreaseTimer(int amount) => LevelTimer += amount;
+    public static void IncreaseTimer(int amount, Transform source = null)
+    {
+        LevelTimer += amount;
+        if (!source) return;
+        
+        if (!_scoreTextPopup)
+        {
+            _scoreTextPopup = Resources.Load<GameObject>("Prefabs/ScoreTextPopup");
+        }
+        if (!_scoreTextPopup) return;
+        
+        var popupObject = Instantiate(_scoreTextPopup, source.position, Quaternion.identity);
+        var popup = popupObject.GetComponent<ScoreTextPopup>();
+        
+        var times = TimeToMinsAndSecs(amount);
+
+        Instance.StartCoroutine(popup.Popup($"+{times.Item1:0}:{times.Item2:00}"));
+    }
 
     public void TogglePause()
     {
-        if (currentController && !currentController.isDead)
+        if (currentController && !currentController.IsDead)
         {
             isGamePaused = !isGamePaused;
             _pauseMenu.SetActive(isGamePaused);
@@ -321,5 +357,12 @@ public class GameManager : MonoBehaviour
         isGamePaused = false;
         _pauseMenu.SetActive(false);
         ResetGame();
+    }
+
+    private static Tuple<int, int> TimeToMinsAndSecs(float time)
+    {
+        var mins = Mathf.FloorToInt(time / 60);
+        var secs = Mathf.FloorToInt((time - mins * 60) % 60);
+        return new Tuple<int, int>(mins, secs);
     }
 }

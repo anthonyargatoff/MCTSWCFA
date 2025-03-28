@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -75,7 +76,12 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private void OnToggleRewind()
     {
-        if (playerController.isDead || !AllowedToRewind()) return;
+        if (playerController.IsDead || !AllowedToRewind())
+        {
+            if (IsRewinding) OnRewindToggle.Invoke(false);
+            CleanupRewind();
+            return;
+        }
         
         if (RewindActive)
         {
@@ -116,6 +122,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
             return;
         }
         
+        
         var pos = new Vector3[2];
         pos[0] = transform.position;
         if (focusRewindable)
@@ -145,7 +152,30 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         lineShape.rotation = new Vector3(0, 0, angle);
        
         var shape = hitParticles.shape;
+        
         shape.position = worldToTransformMatrix.MultiplyPoint3x4(pos[1]);
+
+        Collider2D col = null;
+        
+        var emission = hitParticles.emission;
+        focusRewindable?.TryGetComponent(out col);
+        if (col)
+        {
+            shape.shapeType = col switch
+            {
+                CircleCollider2D or CapsuleCollider2D or PolygonCollider2D => ParticleSystemShapeType.Circle,
+                BoxCollider2D or EdgeCollider2D => ParticleSystemShapeType.Box,
+                _ => shape.shapeType
+            };
+            shape.scale = new Vector3(1.5f * col.bounds.size.x, 1.5f * col.bounds.size.y, 1);
+            emission.rateOverTime = Mathf.RoundToInt((shape.scale.x + shape.scale.y) * 12.5f);
+        }
+        else
+        {
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.scale = Vector3.one;
+            emission.rateOverTime = 25;
+        }
 
         var lineMain = lineParticles.main;
         lineMain.useUnscaledTime = true;
@@ -183,9 +213,9 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private IEnumerator OnRewindableSelected(Rewindable rewindable)
     {
-        if (!AllowedToRewind()) yield break;
-        if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position),rewindable)) yield break;
-        if (RewindActive) yield break;
+        if (rewindable.IsDestroyed() || RewindActive || !IsRewinding || !AllowedToRewind()) yield break;
+        if (!(focusRewindable?.Equals(rewindable) ?? false) && IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position),rewindable)) yield break;
+        
         rewoundObject = rewindable;
         OnToggleRewind();
         RewindActive = true;
@@ -198,8 +228,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private void SetFocusRewindable(Rewindable rewindable)
     {
-        Debug.Log($"{rewindable.gameObject.name}");
-        if (!AllowedToRewind()) return;
+        if (!IsRewinding || !AllowedToRewind() || rewindable.IsDestroyed()) return;
         if (IsMouseTargetOccluded(Vector2.Distance(transform.position,rewindable.transform.position),rewindable)) return;
         focusRewindable = rewindable;
     }
@@ -231,15 +260,19 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
     private bool IsMouseTargetOccluded(float objectDistance, Rewindable obj = null)
     {
         var hit = MousePositionRaycast(objectDistance + 1f);
+        
         var hitTooClose = Vector2.Distance(transform.position, hit.point) < objectDistance;
-        if (obj && LayerMask.NameToLayer("Ground") == obj.gameObject.layer) return !obj.transform.Equals(hit.transform) && !obj.transform.Equals(hit.transform.parent);
+        if (obj && hit.transform)
+        {
+            return !obj.transform.Equals(hit.transform) && !hit.transform.IsChildOf(obj.transform);
+        }
         return hit.transform  && hitTooClose;
     }
 
     private RaycastHit2D MousePositionRaycast(float distance = 100)
     {
         var mousePos = GetMousePositionInWorldCoords();
-        return Physics2D.Raycast(transform.position, (mousePos - transform.position).normalized, distance, LayerMask.GetMask("Ground"));
+        return Physics2D.Raycast(transform.position, (mousePos - transform.position).normalized, distance, LayerMask.GetMask("Ground","Object","StageElement"));
     }
 
     private Vector3 GetMousePositionInWorldCoords()
@@ -251,6 +284,6 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
 
     private bool AllowedToRewind()
     {
-        return !playerController.isDead && !GameManager.isGamePaused && !GameManager.isCompletingLevel && !GameManager.isStartingLevel;
+        return !playerController.IsDead && !GameManager.isGamePaused && !GameManager.isCompletingLevel && !GameManager.isStartingLevel;
     }
 }
