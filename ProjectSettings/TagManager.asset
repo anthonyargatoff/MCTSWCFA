@@ -13,6 +13,12 @@ TagManager:
   - HammerObject
   - HammerHitbox
   - Camera
+  - InvisibleWall
+  - UpDownPlatformTrigger
+  - Barrel
+  - DonkeyKong
+  - HostileEntity
+  - Fire
   layers:
   - Default
   - TransparentFX
@@ -23,10 +29,10 @@ TagManager:
   - Ground
   - Ladder
   - BarrelLadder
-  - 
-  - 
-  - 
-  - 
+  - PlayerWall
+  - Object
+  - StageElement
+  - HostileEntity
   - 
   - 
   - 
