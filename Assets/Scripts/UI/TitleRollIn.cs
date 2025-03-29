@@ -10,7 +10,7 @@ public class TitleRollIn : MonoBehaviour
 {
     private bool spritesLoaded;
     private static List<Sprite> titleSprites = new();
-    private static int numSprites;
+    private static int _numSprites;
     private RectTransform rectTransform;
     
     private bool titleRolledIn;
@@ -23,7 +23,7 @@ public class TitleRollIn : MonoBehaviour
             foreach (var sprite in titleSprites)
             {
                 var success  = int.TryParse(sprite.name["title_".Length..], out var i);
-                if (success) numSprites = Math.Max(numSprites, i);
+                if (success) _numSprites = Math.Max(_numSprites, i+1);
             }
             spritesLoaded = true;
         }
@@ -46,7 +46,7 @@ public class TitleRollIn : MonoBehaviour
         
         var offset = new Vector2(sample.texture.width / 2f / ppu, (sample.texture.height + offsetY) / 2f / ppu);
         yield return new WaitForSecondsRealtime(1f);
-        for (var i = 0; i < numSprites; i++)
+        for (var i = 0; i < _numSprites; i++)
         {
             var img = CreateSpriteImage(i, offset, ppu);
             var goalY = img.rectTransform.position.y;

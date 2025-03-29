@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using DG.Tweening;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -17,7 +19,11 @@ public class ScoreEvent
 
 public class GameManager : MonoBehaviour
 {
+    private static bool _debugMode;
     public static GameManager Instance { get; private set; }
+
+    private const int TargetFrameRate = 60;
+    private static float _frameRatio = 1.0f;
     
     private const string DebugScene = "SampleScene";
     private static bool _initialized;
@@ -62,10 +68,18 @@ public class GameManager : MonoBehaviour
     private static TextMeshProUGUI _livesText;
     private static TextMeshProUGUI _scoreText;
     private static TextMeshProUGUI _timerText;
+    private static TextMeshProUGUI _fpsText;
     private static GameObject _pauseMenu;
+    private static GameObject _debugMenu;
+
+    private static int frameCount = 0;
+    private static float timeSinceLastFrameRateCheck = 0f;
     
     private void Awake()
     {
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = TargetFrameRate;
+        
         Instance = this;
         _scoreTextPopup = Resources.Load<GameObject>("Prefabs/ScoreTextPopup");
         _mainUI = GameObject.Find("MainUICanvas").GetComponent<Canvas>();
@@ -73,6 +87,54 @@ public class GameManager : MonoBehaviour
         _loadingScreen = _mainUI.transform.Find("LoadingScreen").GetComponent<LoadingScreen>();
         _gameOverScreen = _mainUI.transform.Find("GameOverScreen").GetComponent<GameOverScreen>();
         _pauseMenu = _mainUI.transform.Find("PauseMenu").gameObject;
+        _debugMenu = _mainUI.transform.Find("DebugMenu").gameObject;
+        _fpsText = _mainUI.transform.Find("FPSText").GetComponent<TextMeshProUGUI>();
+
+        if (_debugMenu)
+        {
+            var container = _debugMenu.transform.Find("DebugPanel/LayoutContainer");
+            var button = container?.Find("ButtonTemplate");
+            if (container && button)
+            {
+                var sceneNames = new List<string>
+                {
+                    MainMenu,
+                    VictoryScene,
+                };
+                for (var i = 1; i <= NumLevels; i++)
+                {
+                    sceneNames.Add($"{LevelPrefix}{i}");
+                }
+
+                foreach (var sceneName in sceneNames)
+                {
+                    var b = Instantiate(button.gameObject, container);
+                    var but = b.GetComponent<Button>();
+                    but.onClick.AddListener(() =>
+                    {
+                        if (!_debugMode) return;
+                        var isLevel = sceneName.ToLowerInvariant().Contains(LevelPrefix.ToLowerInvariant());
+                        if (isLevel)
+                        {
+                            var valid = int.TryParse(sceneName[LevelPrefix.Length..], out var levelIndex);
+                            if (valid) CurrentLevel = levelIndex;
+                            else return;
+                            StartCoroutine(LoadLevel());
+                        }
+                        else
+                        {
+                            StartCoroutine(LoadScene(sceneName));   
+                        }
+                        
+                        _debugMenu.SetActive(false);
+                    });
+                    var text = b.GetComponentInChildren<TextMeshProUGUI>();
+                    text.SetText(sceneName);  
+                    b.name = sceneName;
+                    b.SetActive(true);
+                }
+            }
+        }
         
         _hud = _mainUI.transform.Find("HUD");
         var hudContainer = _hud.Find("Container");
@@ -82,9 +144,27 @@ public class GameManager : MonoBehaviour
         
         ResetGame(true);
     }
-    
+
+    private bool hadCtrlDown;
     private void Update()
     {
+        if (Application.isFocused)
+        {
+            ++frameCount;
+            timeSinceLastFrameRateCheck += Time.unscaledDeltaTime;
+            if (timeSinceLastFrameRateCheck >= 1f)
+            {
+                if (_debugMode)
+                {
+                    _fpsText?.SetText($"FPS: {frameCount / timeSinceLastFrameRateCheck:F1}");
+                }
+
+                _frameRatio = frameCount / timeSinceLastFrameRateCheck / TargetFrameRate;
+                timeSinceLastFrameRateCheck = 0f;
+                frameCount = 0;
+            }
+        }
+
         if (currentController && !currentController.IsDead && !isCompletingLevel && !isStartingLevel)
         {
             if (!currentRewindController)
@@ -105,6 +185,18 @@ public class GameManager : MonoBehaviour
         {
             TogglePause();
         }
+
+        if (Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.D))
+        {
+            _debugMode = !_debugMode;
+            _debugMenu.SetActive(false);
+            _fpsText?.gameObject.SetActive(_debugMode);
+        }
+
+        if (_debugMode && Input.GetKeyDown(KeyCode.Tab))
+        {
+            _debugMenu.SetActive(!_debugMenu.activeSelf);
+        } 
     }
 
     private float lastTextUpdate = 0f;
@@ -285,12 +377,14 @@ public class GameManager : MonoBehaviour
 
     private static IEnumerator FadeScreen(bool fadeIn = true, float delay = 1f)
     {
+        _fadePanel.gameObject.SetActive(true);
         var opaque = new Color(0, 0, 0, 1);
         var transparent = new Color(0, 0, 0, 0);
         
         _fadePanel.color = fadeIn ? opaque : transparent;
         _fadePanel.DOColor(fadeIn ? transparent : opaque, delay).SetEase(Ease.Linear).SetUpdate(true);
         yield return new WaitForSecondsRealtime(delay);
+        _fadePanel.gameObject.SetActive(false);
     }
     
     public static void IncreaseScore(int amount, Transform source = null)
@@ -362,5 +456,10 @@ public class GameManager : MonoBehaviour
         var mins = Mathf.FloorToInt(time / 60);
         var secs = Mathf.FloorToInt((time - mins * 60) % 60);
         return new Tuple<int, int>(mins, secs);
+    }
+
+    public static float GetScaledFrameCount(int frames)
+    {
+        return frames * _frameRatio;
     }
 }

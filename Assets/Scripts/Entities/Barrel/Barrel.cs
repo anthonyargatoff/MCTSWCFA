@@ -156,7 +156,7 @@ public class Barrel : MonoBehaviour
     if (Time.timeScale > 0)
     {
       // Prevent barrel getting stuck
-      if (lastPositionCheck > CheckPositionFrames)
+      if (lastPositionCheck > GameManager.GetScaledFrameCount(CheckPositionFrames))
       {
         if (Vector2.Distance(prevPosition, transform.position) < 0.01f)
         {
