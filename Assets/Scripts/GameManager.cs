@@ -63,6 +63,7 @@ public class GameManager : MonoBehaviour
     private static TextMeshProUGUI _scoreText;
     private static TextMeshProUGUI _timerText;
     private static GameObject _pauseMenu;
+    private bool isInTutorial = false;
 
     // Tutorial variables
     public static int CurrentTutorialLevel { get; private set; }
@@ -215,6 +216,7 @@ public class GameManager : MonoBehaviour
     private void GetPlayerController()
     {
         var player = GameObject.FindGameObjectWithTag("Player");
+        Debug.Log(player);
         if (!player) return;
         
         _hud.gameObject.SetActive(true);
@@ -332,7 +334,7 @@ public class GameManager : MonoBehaviour
 
     public void TogglePause()
     {
-        if (currentController && !currentController.IsDead)
+        if ((currentController && !currentController.IsDead) || isInTutorial)
         {
             isGamePaused = !isGamePaused;
             _pauseMenu.SetActive(isGamePaused);
@@ -349,11 +351,16 @@ public class GameManager : MonoBehaviour
         isGamePaused = false;
         _pauseMenu.SetActive(false);
         CurrentScore = 0;
-        StartCoroutine(LoadLevel());
+        if (isInTutorial) {
+          RestartTutorialLevel();
+        } else {
+          StartCoroutine(LoadLevel());
+        }
     }
 
     public void ReturnToMainMenu()
     {
+        isInTutorial = false;
         isGamePaused = false;
         _pauseMenu.SetActive(false);
         ResetGame();
@@ -368,6 +375,7 @@ public class GameManager : MonoBehaviour
 
     public static void NextTutorial()
     {
+        Instance.isInTutorial = true;
         CurrentTutorialLevel++;
         Instance.StartCoroutine(Instance.LoadScene("Tutorial_" + CurrentTutorialLevel));
     }
@@ -380,8 +388,11 @@ public class GameManager : MonoBehaviour
     public static IEnumerator EndTutorial()
     {
       TextMeshProUGUI text = GameObject.Find("EndTutorial").GetComponent<TextMeshProUGUI>();
-      text.text = "Congratulations, you've completed the tutorial! Returning to main menu";
-      yield return new WaitForSeconds(3);
+      text.text = "Congratulations, you've completed the tutorial!";
+      Time.timeScale = 0;
+      yield return new WaitForSecondsRealtime(3);
+      Time.timeScale = 1;
+      Instance.isInTutorial = false;
       Instance.StartCoroutine(Instance.LoadScene(MainMenu));
     }
 }
