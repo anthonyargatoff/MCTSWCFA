@@ -195,19 +195,17 @@ public class GameManager : MonoBehaviour
         
         SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
 
+        _hud.gameObject.SetActive(false);
         if (showLoadingScreen)
         {
-            _hud.gameObject.SetActive(false);
             StartCoroutine(FadeScreen(false));
             StartCoroutine(FadeScreen(true,2f));
             yield return _loadingScreen.ShowLoadingScreen(respawn);
         }
         StartCoroutine(FadeScreen());
         
-        if (sceneName.Contains(LevelPrefix)) 
+        if (sceneName.ToLowerInvariant().Contains(LevelPrefix.ToLowerInvariant())) 
             GetPlayerController();
-        else 
-            _hud.gameObject.SetActive(false);
         
         Time.timeScale = 1;
     }
