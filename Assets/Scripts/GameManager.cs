@@ -363,4 +363,9 @@ public class GameManager : MonoBehaviour
         var secs = Mathf.FloorToInt((time - mins * 60) % 60);
         return new Tuple<int, int>(mins, secs);
     }
+
+    public static void StartTutorial()
+    {
+        Instance.StartCoroutine(Instance.LoadScene("Tutorial_1"));
+    }
 }

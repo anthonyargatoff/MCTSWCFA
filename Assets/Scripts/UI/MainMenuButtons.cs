@@ -17,5 +17,10 @@ public class MainMenuButtons : MonoBehaviour
     public void OnToggleControls(bool toggle)
     {
         controlsPanel.SetActive(toggle);
-    } 
+    }
+
+    public void StartTutorial()
+    {
+        GameManager.StartTutorial();
+    }
 }
