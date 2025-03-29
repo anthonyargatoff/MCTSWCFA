@@ -63,6 +63,9 @@ public class GameManager : MonoBehaviour
     private static TextMeshProUGUI _scoreText;
     private static TextMeshProUGUI _timerText;
     private static GameObject _pauseMenu;
+
+    // Tutorial variables
+    public static int CurrentTutorialLevel { get; private set; }
     
     private void Awake()
     {
@@ -79,7 +82,6 @@ public class GameManager : MonoBehaviour
         _livesText = hudContainer.Find("Lives")?.transform.Find("LivesText").GetComponent<TextMeshProUGUI>();
         _scoreText = hudContainer.Find("ScoreText")?.GetComponent<TextMeshProUGUI>();
         _timerText = hudContainer.Find("TimerText")?.GetComponent<TextMeshProUGUI>();
-        
         ResetGame(true);
     }
     
@@ -364,8 +366,14 @@ public class GameManager : MonoBehaviour
         return new Tuple<int, int>(mins, secs);
     }
 
-    public static void StartTutorial()
+    public static void NextTutorial()
     {
-        Instance.StartCoroutine(Instance.LoadScene("Tutorial_1"));
+        CurrentTutorialLevel++;
+        Instance.StartCoroutine(Instance.LoadScene("Tutorial_" + CurrentTutorialLevel));
+    }
+
+    public static void RestartTutorialLevel()
+    {
+      Instance.StartCoroutine(Instance.LoadScene("Tutorial_" + CurrentTutorialLevel));
     }
 }

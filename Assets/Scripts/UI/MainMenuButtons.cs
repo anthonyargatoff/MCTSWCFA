@@ -21,6 +21,6 @@ public class MainMenuButtons : MonoBehaviour
 
     public void StartTutorial()
     {
-        GameManager.StartTutorial();
+        GameManager.NextTutorial();
     }
 }
