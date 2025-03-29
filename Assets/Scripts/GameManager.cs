@@ -376,4 +376,12 @@ public class GameManager : MonoBehaviour
     {
       Instance.StartCoroutine(Instance.LoadScene("Tutorial_" + CurrentTutorialLevel));
     }
+
+    public static IEnumerator EndTutorial()
+    {
+      TextMeshProUGUI text = GameObject.Find("EndTutorial").GetComponent<TextMeshProUGUI>();
+      text.text = "Congratulations, you've completed the tutorial! Returning to main menu";
+      yield return new WaitForSeconds(3);
+      Instance.StartCoroutine(Instance.LoadScene(MainMenu));
+    }
 }

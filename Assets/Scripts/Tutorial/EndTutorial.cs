@@ -1,12 +1,12 @@
 using UnityEngine;
 
-public class ResetTutorialLevel : MonoBehaviour
+public class EndTutorial : MonoBehaviour
 {
   void OnTriggerEnter2D(Collider2D collision)
   {
     if (collision.CompareTag("Player"))
     {
-      GameManager.RestartTutorialLevel();
+      StartCoroutine(GameManager.EndTutorial());
     }
   }
 }
