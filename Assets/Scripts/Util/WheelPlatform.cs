@@ -3,12 +3,13 @@ using UnityEngine;
 public class WheelPlatform : MonoBehaviour
 {
   private Quaternion initialRotation;
-  void Start()
+  
+  private void Start()
   {
     initialRotation = transform.rotation;
   }
 
-  void Update()
+  private void Update()
   {
     transform.rotation = initialRotation;
   }

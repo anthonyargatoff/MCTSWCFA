@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5034179217524681359}
   - component: {fileID: 8710935427504410282}
   - component: {fileID: 5458436031326796611}
+  - component: {fileID: -5053922169030571284}
   m_Layer: 6
   m_Name: Platform
   m_TagString: Platform
@@ -30,8 +31,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.2320776, y: 0.2320776, z: 0}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2963385172385326514}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &8710935427504410282
@@ -132,84 +132,18 @@ BoxCollider2D:
     adaptiveTilingThreshold: 0.5
     drawMode: 2
     adaptiveTiling: 0
-  m_AutoTiling: 1
+  m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!1001 &3630714170063400509
-PrefabInstance:
+--- !u!114 &-5053922169030571284
+MonoBehaviour:
   m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 5034179217524681359}
-    m_Modifications:
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7072512617243635375, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_Name
-      value: BarrelInvisibleWall
-      objectReference: {fileID: 0}
-    - target: {fileID: 7072512617243635375, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 7072512617243635375, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-      propertyPath: m_TagString
-      value: PlatformBarrelWall
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: eddefc22083962bb295803bb7fe17266, type: 3}
---- !u!4 &2963385172385326514 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1964392216754703247, guid: eddefc22083962bb295803bb7fe17266, type: 3}
-  m_PrefabInstance: {fileID: 3630714170063400509}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8926118890474373882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c77a2462c7f0436d8a0ebd72511cab69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -1,29 +1,42 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class TitleRollIn : MonoBehaviour
 {
-    private bool spritesLoaded = false;
+    private bool spritesLoaded;
     private static List<Sprite> titleSprites = new();
+    private static int numSprites;
     private RectTransform rectTransform;
+    
+    private bool titleRolledIn;
     
     private void Awake()
     {
         if (!spritesLoaded)
         {
             titleSprites.AddRange(Resources.LoadAll<Sprite>("Sprites/title"));
+            foreach (var sprite in titleSprites)
+            {
+                var success  = int.TryParse(sprite.name["title_".Length..], out var i);
+                if (success) numSprites = Math.Max(numSprites, i);
+            }
             spritesLoaded = true;
         }
         rectTransform = GetComponent<RectTransform>();
-
+        
         StartCoroutine(RollInTitle());
     }
 
     private IEnumerator RollInTitle()
     {
+        if (titleRolledIn) yield break;
+        titleRolledIn = true;
+        
         var sample = titleSprites[0];
         var ppuMod = 2f;
         var ppu = sample.pixelsPerUnit / ppuMod;
@@ -33,7 +46,7 @@ public class TitleRollIn : MonoBehaviour
         
         var offset = new Vector2(sample.texture.width / 2f / ppu, (sample.texture.height + offsetY) / 2f / ppu);
         yield return new WaitForSecondsRealtime(1f);
-        for (var i = 0; i < titleSprites.Count; i++)
+        for (var i = 0; i < numSprites; i++)
         {
             var img = CreateSpriteImage(i, offset, ppu);
             var goalY = img.rectTransform.position.y;
@@ -47,6 +60,8 @@ public class TitleRollIn : MonoBehaviour
     {
         var obj = new GameObject();
         obj.transform.SetParent(transform);
+        obj.name = titleSprites[i].name;
+        
         var img = obj.AddComponent<Image>();
         var sprite = titleSprites[i];
         img.sprite = sprite;
@@ -55,6 +70,7 @@ public class TitleRollIn : MonoBehaviour
         img.rectTransform.sizeDelta = new Vector2(sprite.rect.width / ppu, sprite.rect.height / ppu);
         img.rectTransform.position = new Vector2(sprite.rect.center.x / ppu - offset.x, sprite.rect.center.y / ppu - offset.y);
         img.enabled = false;
+        
         return img;
     }
 }

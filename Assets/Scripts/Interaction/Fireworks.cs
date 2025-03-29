@@ -7,7 +7,9 @@ public class Fireworks : MonoBehaviour
     private Camera mainCamera;
     
     private const float timeBetweenFireworks = 0.5f;
-    private float timeSinceLastFirework = 0f; 
+    private float timeSinceLastFirework = 0f;
+
+    private bool ready = false;
     
     private void Awake()
     {
@@ -17,10 +19,21 @@ public class Fireworks : MonoBehaviour
             fireworkPrefab = Resources.Load<GameObject>("Prefabs/Firework");
             fireworkPrefabLoaded = true;
         }
+        
+        var candidates = FindObjectsByType<PrincessSpriteController>(FindObjectsSortMode.InstanceID);
+        if (candidates.Length > 0)
+        {
+            var princessSprite = candidates[0];
+            princessSprite.victorySceneKissed.AddListener(() => ready = true);
+        }
+        else ready = true;
+        
     }
     
     private void Update()
     {
+        if (!ready) return;
+        
         if (timeSinceLastFirework > timeBetweenFireworks)
         {
             var screenPosition = new Vector2(Random.Range(0.1f,0.9f),Random.Range(0.1f,0.5f));
