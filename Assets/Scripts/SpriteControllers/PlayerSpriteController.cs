@@ -174,14 +174,14 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
             walkFrame = controller.IsWalking && !walkFrame;
             if (controller.IsWalking)
             {
-                AudioManager.PlaySound(Audios.Move, volume: 0.5f, pitch: pitches[walkPitchIndex]);
+                AudioManager.PlaySound(Audios.Move, controller.UsingHammer ? 0f : 0.5f, pitch: pitches[walkPitchIndex]);
                 walkPitchIndex++;
                 if (walkPitchIndex >= pitches.Length) walkPitchIndex = 0;
             }
             
             if (controller.IsClimbing && Mathf.Abs(rb.linearVelocityY) > 0.01f)
             {
-                AudioManager.PlaySound(Audios.Ladder, volume: 0.5f, pitch: pitches[climbPitchIndex]);
+                AudioManager.PlaySound(Audios.Ladder, controller.UsingHammer ? 0f: 0.5f, pitch: pitches[climbPitchIndex]);
                 climbPitchIndex++;
                 if (climbPitchIndex >= pitches.Length) climbPitchIndex = 0;
             }
