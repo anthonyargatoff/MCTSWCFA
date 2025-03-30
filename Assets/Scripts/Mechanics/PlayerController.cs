@@ -151,10 +151,13 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.CompareTag("Barrel") || other.gameObject.CompareTag("HostileEntity") || other.gameObject.CompareTag("Fire") || other.gameObject.CompareTag("DonkeyKong"))
+        foreach (var tag in DeathTags)
         {
-            PlayerDied();
-            return;
+            if (other.gameObject.CompareTag(tag))
+            {
+                PlayerDied();
+                return;
+            }
         }
         if (other.gameObject.TryGetComponent<Collectible>(out var collectible))
         {

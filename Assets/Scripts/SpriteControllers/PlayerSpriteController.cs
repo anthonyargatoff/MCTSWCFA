@@ -56,13 +56,13 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
     private SpriteRenderer hammerSprite;
     private SpriteRenderer timewarpSprite;
 
-    private const int FramesBetweenWalkUpdate = 30;
+    private const int FramesBetweenWalkUpdate = 10;
     private int framesSinceLastWalkUpdate = 0;
     
-    private const int FramesBetweenHammerUpdate = 60;
+    private const int FramesBetweenHammerUpdate = 15;
     private int framesSinceLastHammerUpdate = 0;
-    
-    private const int FramesBetweenClimbUpdate = 30;
+
+    private const int FramesBetweenClimbUpdate = 5;
     private int framesSinceLastClimbUpdate = 0;
 
     private float lastY = 0;
@@ -134,7 +134,6 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
     {
         if (isInVictoryScene) return;
         
-        hammerSpriteGameObject.transform.localScale = new Vector3(Mathf.Sign(transform.localScale.x),1,1);
         HandleSpriteSwap();
         
         particles.TryGetValue(RunPfx, out var runPfx);
@@ -158,19 +157,19 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
             TriggerParticles(LandPfx);
         } 
         
-        if (framesSinceLastWalkUpdate > FramesBetweenWalkUpdate)
+        if (framesSinceLastWalkUpdate > GameManager.GetScaledFrameCount(FramesBetweenWalkUpdate))
         {
             walkFrame = controller.IsWalking && !walkFrame;
             framesSinceLastWalkUpdate = 0;
         }
         
-        if (framesSinceLastHammerUpdate > FramesBetweenHammerUpdate)
+        if (framesSinceLastHammerUpdate > GameManager.GetScaledFrameCount(FramesBetweenHammerUpdate))
         {
             hammerFrame = controller.UsingHammer && !hammerFrame;
             framesSinceLastHammerUpdate = 0;
         }
         
-        if (framesSinceLastClimbUpdate > FramesBetweenClimbUpdate)
+        if (framesSinceLastClimbUpdate > GameManager.GetScaledFrameCount(FramesBetweenClimbUpdate))
         {
             climbFrame = controller.IsClimbing && !climbFrame;
             framesSinceLastClimbUpdate = 0;

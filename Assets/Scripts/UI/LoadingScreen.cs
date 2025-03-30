@@ -50,14 +50,14 @@ public class LoadingScreen : MonoBehaviour
 
     public IEnumerator ShowLoadingScreen(bool respawn = false)
     {
-        
-        var layoutPos = layout.position;
+        var width = Screen.width;
+        var layoutPos = new Vector2(-width, 0);
         var charPosition = character.rectTransform.anchoredPosition;
         ToggleBackground(true);
         livesText.SetText($"{GameManager.CurrentLives}");
 
         character.enabled = false;
-        layout.DOMoveX(layout.sizeDelta.x / 2, 1f).SetEase(Ease.InCubic).SetUpdate(true);
+        layout.DOMoveX(width/2f, 1f).SetEase(Ease.InCubic).SetUpdate(true);
         yield return new WaitForSecondsRealtime(1f);
         if (AudioManager.instance)
         {
@@ -148,7 +148,7 @@ public class LoadingScreen : MonoBehaviour
 
         ToggleBackground(false);
         character.rectTransform.anchoredPosition = charPosition;
-        layout.position = layoutPos;
+        layout.anchoredPosition = layoutPos;
         flavorText.SetText("");
     }
 
