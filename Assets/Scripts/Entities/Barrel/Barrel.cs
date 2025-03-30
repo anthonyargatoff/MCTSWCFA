@@ -114,10 +114,7 @@ public class Barrel : MonoBehaviour
         GameManager.IncreaseScore((int)(ScoreEvent.BarrelRewindDestroy * GetModifier()), transform);
       }
       Destroy(gameObject);
-      if (AudioManager.instance)
-      {
-        AudioManager.instance.PlaySound(AudioManager.instance.destroyClip);
-      }
+      AudioManager.PlaySound(Audios.Destroy);
     }
   }
   
@@ -247,10 +244,7 @@ public class Barrel : MonoBehaviour
     if (!collision.gameObject.CompareTag("HammerHitbox") || !player || !player.UsingHammer) return;
     Destroy(gameObject);
     GameManager.IncreaseScore((int)(ScoreEvent.BarrelHammerDestroy * GetModifier()), transform);
-    if (AudioManager.instance)
-    {
-      AudioManager.instance.PlaySound(AudioManager.instance.destroyClip);
-    }
+    AudioManager.PlaySound(Audios.Destroy);
   }
 
   private void CheckPlayerJumpOver()
@@ -262,10 +256,7 @@ public class Barrel : MonoBehaviour
     {
       awardedPoints = true;
       GameManager.IncreaseScore((int)(ScoreEvent.BarrelJump * GetModifier()), transform);
-      if (AudioManager.instance)
-      {
-        AudioManager.instance.PlaySound(AudioManager.instance.jumpOverBarrel);
-      }
+      AudioManager.PlaySound(Audios.JumpOverBarrel);
     }
   }
   

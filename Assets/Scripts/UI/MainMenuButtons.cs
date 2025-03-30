@@ -12,18 +12,12 @@ public class MainMenuButtons : MonoBehaviour
     public void OnClickPlay()
     {
         GameManager.StartGame();
-        if (AudioManager.instance)
-        {
-            AudioManager.instance.PlaySound(AudioManager.instance.menuClickClip);
-        }
+        AudioManager.PlaySound(Audios.MenuClick);
     }
 
     public void OnToggleControls(bool toggle)
     {
         controlsPanel.SetActive(toggle);
-        if (AudioManager.instance)
-        {
-            AudioManager.instance.PlaySound(AudioManager.instance.menuClickClip);
-        }
+        AudioManager.PlaySound(Audios.MenuClick);
     } 
 }

@@ -82,10 +82,7 @@ public class PlayerController : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, JumpSpeed);
             OnJumped?.Invoke();
-            if (AudioManager.instance)
-            {
-                AudioManager.instance.PlaySound(AudioManager.instance.jumpClip);
-            }
+            AudioManager.PlaySound(Audios.Jump);
         }
     }
 
@@ -106,10 +103,6 @@ public class PlayerController : MonoBehaviour
                 ladderCenter = new Vector3(currentLadder.transform.position.x, transform.position.y, transform.position.z);
                 ToggleGroundCollisions(false);
                 StartCoroutine(SmoothMoveToLadder(ladderCenter));
-                if (AudioManager.instance)
-                {
-                    AudioManager.instance.PlaySound(AudioManager.instance.ladderClip);
-                }
             }
 
             IsClimbing = true;
@@ -130,10 +123,6 @@ public class PlayerController : MonoBehaviour
             IsClimbing = false;
 
             rb.gravityScale = 1;
-            if (AudioManager.instance && input.x != 0 && !Input.GetKeyUp(KeyCode.W) && !Input.GetKeyUp(KeyCode.S) && !Input.GetKeyDown(KeyCode.W) && !Input.GetKeyDown(KeyCode.S))
-            {
-                AudioManager.instance.PlaySound(AudioManager.instance.moveClip);
-            }
         }
     }
 
@@ -237,7 +226,7 @@ public class PlayerController : MonoBehaviour
             //StartCoroutine(Utilities.DrawDebugRay(rayPos, Vector2.down, transform.lossyScale.y / 2 + 0.1f));
             if (IsGrounded) break;
         }
-        IsWalking = IsGrounded && Mathf.Abs(moveInput) > 0.05f;
+        IsWalking = IsGrounded && !IsClimbing && Mathf.Abs(moveInput) > 0.05f;
         
         if (!IsClimbing)
         {
@@ -346,10 +335,7 @@ public class PlayerController : MonoBehaviour
         const float inc = 0.1f;
         float hammerTime = 0;
 
-        if (AudioManager.instance)
-        {
-            AudioManager.instance.PlayHammerMusic();
-        }
+        AudioManager.PlayHammerMusic();
 
         while (UsingHammer && hammerTime <= HammerDuration)
         {
@@ -357,10 +343,8 @@ public class PlayerController : MonoBehaviour
             hammerTime += inc;
         }
 
-        if (AudioManager.instance)
-        {
-            AudioManager.instance.StopHammerMusic();
-        }
+        AudioManager.StopHammerMusic();
+        
         UsingHammer = false;
     }
 
@@ -371,10 +355,6 @@ public class PlayerController : MonoBehaviour
         rb.simulated = false;
         GetComponent<Collider2D>().enabled = false;
         OnDeath?.Invoke();
-        if (AudioManager.instance)
-        {
-            AudioManager.instance.PlayerDied();
-        }
     }
 
     public bool IsAboveCurrentLadder()

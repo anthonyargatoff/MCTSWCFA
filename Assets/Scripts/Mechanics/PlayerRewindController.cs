@@ -93,19 +93,11 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
             
             if (IsRewinding)
             {
-                if (AudioManager.instance)
-                {
-                    AudioManager.instance.StartTimeWarp();
-                }
                 Cursor.SetCursor(rewindCursor, cursorHotspot, CursorMode.Auto);
                 Cursor.visible = true;
             }
             else
             {
-                if (AudioManager.instance)
-                {
-                    AudioManager.instance.EndTimeWarp();
-                }
                 Cursor.SetCursor(null, cursorHotspot, CursorMode.Auto);
             }
             
@@ -226,10 +218,7 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         
         rewoundObject = rewindable;
         OnToggleRewind();
-        if (AudioManager.instance)
-        {
-            AudioManager.instance.PlaySound(AudioManager.instance.rewindObjectClip);
-        }
+        AudioManager.PlaySound(Audios.Rewind);
         RewindActive = true;
 
         yield return rewindable.Rewind();

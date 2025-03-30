@@ -59,10 +59,10 @@ public class LoadingScreen : MonoBehaviour
         character.enabled = false;
         layout.DOMoveX(width/2f, 1f).SetEase(Ease.InCubic).SetUpdate(true);
         yield return new WaitForSecondsRealtime(1f);
-        if (AudioManager.instance)
+        if (AudioManager.Instance)
         {
-            AudioManager.instance.PauseMusicSound();
-            AudioManager.instance.PlaySound(AudioManager.instance.startLevelClip);
+            AudioManager.StopBackgroundMusic();
+            AudioManager.PlaySound(Audios.StartLevel);
         }
         if (respawn)
         {

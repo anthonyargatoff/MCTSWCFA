@@ -9,10 +9,7 @@ public class Collectible : MonoBehaviour
     {
         if (scoreGain > 0) GameManager.IncreaseScore(scoreGain, transform);
         if (timeGain > 0) GameManager.IncreaseTimer(timeGain, transform);
-        if (AudioManager.instance && !gameObject.CompareTag("HammerObject"))
-        {
-            AudioManager.instance.PlaySound(AudioManager.instance.grabCollectible);
-        }
+        AudioManager.PlaySound(Audios.GrabCollectible);
         Destroy(gameObject);
         
     }

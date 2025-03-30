@@ -282,7 +282,8 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
                 rb.bodyType = RigidbodyType2D.Kinematic;
 
                 yield return new WaitForSeconds(0.5f);
-                rb.bodyType = RigidbodyType2D.Dynamic;
+                if (!rb.IsDestroyed())
+                    rb.bodyType = RigidbodyType2D.Dynamic;
             }
         }
 
