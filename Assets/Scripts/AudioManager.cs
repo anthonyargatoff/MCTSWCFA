@@ -1,4 +1,7 @@
+using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class AudioManager : MonoBehaviour
 {
@@ -12,15 +15,24 @@ public class AudioManager : MonoBehaviour
 
     [Header("Audio Clips")]
 
-    public AudioClip collectPointClip;
     public AudioClip destroyClip;
+    public AudioClip dieClip;
+    public AudioClip grabCollectible;
     public AudioClip hammerClip;
     public AudioClip jumpClip;
+    public AudioClip jumpOverBarrel;
     public AudioClip ladderClip;
-    public AudioClip loseMusicClip;
+    public AudioClip loseClip;
+    public AudioClip mainMenuMusicClip;
     public AudioClip mainMusicClip;
+    public AudioClip menuClickClip;
     public AudioClip moveClip;
+    public AudioClip movingLevelClip;
+    public AudioClip rewindObjectClip;
     public AudioClip roundWinClip;
+    public AudioClip startLevelClip;
+    public AudioClip victoryMusicClip;
+    public AudioClip winGameClip;
 
     private void Awake()
     {
@@ -37,15 +49,59 @@ public class AudioManager : MonoBehaviour
 
     void Start()
     {
-        PlayMusicSound();
+        PlayMusicSound(mainMenuMusicClip);
     }
 
-    public void PlayMusicSound()
+    public void PlayMusicSound(AudioClip source)
     {
-        if (mainMusicClip != null && musicSource != null)
+        if (source != null && musicSource != null)
         {
-            musicSource.clip = mainMusicClip;
+            musicSource.clip = source;
             musicSource.loop = true;
+            musicSource.Play();
+        }
+    }
+
+    public void ChangeMusicSound(string sceneName)
+    {
+        sceneName = sceneName.ToLowerInvariant();
+        if (sceneName.ToLowerInvariant().Equals("mainmenu"))
+        {
+            PlayMusicSound(mainMenuMusicClip);
+        }
+        else if (sceneName.Equals("level 1") || sceneName.Equals("level 2") || sceneName.Equals("level 3"))
+        {
+            PlayMusicSound(mainMusicClip);
+        }
+        else if (sceneName.Equals("victoryscene"))
+        {
+            PlaySound(winGameClip);
+            musicSource.clip = victoryMusicClip;
+            musicSource.PlayScheduled(AudioSettings.dspTime + winGameClip.length + 1.5f);
+            musicSource.loop = true;
+        }
+    }
+
+    public void PauseMusicSound()
+    {
+        if (musicSource != null)
+        {
+            musicSource.Pause();
+        }
+    }
+
+    public void StopMusicSound()
+    {
+        if (musicSource != null)
+        {
+            musicSource.Stop();
+        }
+    }
+
+    public void ResumeMusicSound()
+    {
+        if (musicSource != null)
+        {
             musicSource.Play();
         }
     }
@@ -55,8 +111,17 @@ public class AudioManager : MonoBehaviour
         if (mainMusicClip != null && musicSource != null)
         {
             musicSource.pitch = 0.5f;
+
         }
-        
+        if (hammerClip != null && hammerSource != null)
+        {
+            hammerSource.pitch = 0.5f;
+        }
+        if (sfxSource != null)
+        {
+            sfxSource.volume = 0f;
+        }
+
     }
 
     public void EndTimeWarp()
@@ -65,12 +130,19 @@ public class AudioManager : MonoBehaviour
         {
             musicSource.pitch = 1f;
         }
-
+        if (hammerClip != null && hammerSource != null)
+        {
+            hammerSource.pitch = 1f;
+        }
+        if (sfxSource != null)
+        {
+            sfxSource.volume = 1f;
+        }
     }
 
     public void PlayHammerMusic()
     {
-        musicSource.Pause();
+        PauseMusicSound();
         if (hammerSource != null && hammerClip != null)
         {
             hammerSource.clip = hammerClip;
@@ -85,7 +157,7 @@ public class AudioManager : MonoBehaviour
         {
             hammerSource.Stop();
         }
-        musicSource.Play();
+        ResumeMusicSound();
     }
 
     public void PlaySound(AudioClip clip)
@@ -94,6 +166,20 @@ public class AudioManager : MonoBehaviour
         {
             sfxSource.PlayOneShot(clip);
         }
+    }
+
+    public void PlayerDied()
+    {
+        StopHammerMusic();
+        PauseMusicSound();
+        PlaySound(dieClip);
+    }
+
+    public void EndLevel()
+    {
+        StopHammerMusic();
+        StopMusicSound();
+        PlaySound(roundWinClip);
     }
 
 }

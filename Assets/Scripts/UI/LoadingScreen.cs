@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class LoadingScreen : MonoBehaviour
@@ -14,7 +16,7 @@ public class LoadingScreen : MonoBehaviour
     private TextMeshProUGUI livesText;
     private RectTransform times;
     private Image character;
-    
+
     private static bool _spritesLoaded = false;
     private static int[] _spriteIndices = {
         0, 1, 2, 3, 9, 18
@@ -48,33 +50,40 @@ public class LoadingScreen : MonoBehaviour
 
     public IEnumerator ShowLoadingScreen(bool respawn = false)
     {
+        
         var layoutPos = layout.position;
         var charPosition = character.rectTransform.anchoredPosition;
         ToggleBackground(true);
         livesText.SetText($"{GameManager.CurrentLives}");
 
         character.enabled = false;
-        layout.DOMoveX(layout.sizeDelta.x/2, 1f).SetEase(Ease.InCubic).SetUpdate(true);
+        layout.DOMoveX(layout.sizeDelta.x / 2, 1f).SetEase(Ease.InCubic).SetUpdate(true);
         yield return new WaitForSecondsRealtime(1f);
-        
+        if (AudioManager.instance)
+        {
+            AudioManager.instance.PauseMusicSound();
+            AudioManager.instance.PlaySound(AudioManager.instance.startLevelClip);
+        }
         if (respawn)
         {
             character.rectTransform.position += new Vector3(0, layout.sizeDelta.y, 0);
             character.enabled = true;
             character.sprite = _characterSprites[18];
 
-            var inc = Vector2.Distance(character.rectTransform.anchoredPosition,charPosition) / 50;
+            var inc = Vector2.Distance(character.rectTransform.anchoredPosition, charPosition) / 50;
             while (character.rectTransform.anchoredPosition.y > charPosition.y)
             {
                 character.rectTransform.anchoredPosition = new Vector2(charPosition.x, character.rectTransform.anchoredPosition.y - inc);
                 yield return new WaitForSecondsRealtime(0.01f);
             }
-        } else {
-            character.rectTransform.position -= new Vector3(layout.sizeDelta.x / 2,0,0);
+        }
+        else
+        {
+            character.rectTransform.position -= new Vector3(layout.sizeDelta.x / 2, 0, 0);
             character.enabled = true;
             float delta = 0;
             var sprIdx = 1;
-            var inc = Vector2.Distance(character.rectTransform.anchoredPosition,charPosition) / 100;
+            var inc = Vector2.Distance(character.rectTransform.anchoredPosition, charPosition) / 100;
             while (character.rectTransform.anchoredPosition.x < charPosition.x)
             {
                 character.sprite = _characterSprites[sprIdx];
@@ -90,11 +99,11 @@ public class LoadingScreen : MonoBehaviour
         }
 
         character.rectTransform.anchoredPosition = charPosition;
-        
+
         character.sprite = _characterSprites[0];
         var toSpell = $"LEVEL {GameManager.CurrentLevel}";
         var current = string.Empty;
-        
+
         while (!current.Equals(toSpell))
         {
             current += toSpell[current.Length];
@@ -107,7 +116,7 @@ public class LoadingScreen : MonoBehaviour
         var sequence = DOTween.Sequence();
         sequence.SetEase(Ease.InOutSine);
         sequence.SetUpdate(true);
-        
+
         var midpoint = Mathf.Lerp(times.position.x, livesText.transform.position.x, .5f);
         var radius = Mathf.Sqrt(Mathf.Pow(character.rectTransform.position.x - midpoint, 2));
         const int numPoints = 30;
@@ -122,10 +131,10 @@ public class LoadingScreen : MonoBehaviour
         yield return new WaitForSecondsRealtime(timeStep);
         character.sprite = _characterSprites[3];
         yield return new WaitForSecondsRealtime((numPoints - 1) * timeStep);
-        
+
         character.sprite = _characterSprites[0];
-        
-        character.rectTransform.DOMoveX(character.rectTransform.position.x + layout.sizeDelta.x/2, 1.5f).SetEase(Ease.Linear).SetUpdate(true);
+
+        character.rectTransform.DOMoveX(character.rectTransform.position.x + layout.sizeDelta.x / 2, 1.5f).SetEase(Ease.Linear).SetUpdate(true);
 
         float dt = 0;
         var si = 1;
@@ -136,7 +145,7 @@ public class LoadingScreen : MonoBehaviour
             dt += 0.1f;
             yield return new WaitForSecondsRealtime(0.1f);
         }
-        
+
         ToggleBackground(false);
         character.rectTransform.anchoredPosition = charPosition;
         layout.position = layoutPos;

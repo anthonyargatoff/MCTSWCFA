@@ -5,6 +5,7 @@ using DG.Tweening;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -63,7 +64,8 @@ public class GameManager : MonoBehaviour
     private static TextMeshProUGUI _scoreText;
     private static TextMeshProUGUI _timerText;
     private static GameObject _pauseMenu;
-    
+    public GameObject player;
+
     private void Awake()
     {
         Instance = this;
@@ -73,16 +75,16 @@ public class GameManager : MonoBehaviour
         _loadingScreen = _mainUI.transform.Find("LoadingScreen").GetComponent<LoadingScreen>();
         _gameOverScreen = _mainUI.transform.Find("GameOverScreen").GetComponent<GameOverScreen>();
         _pauseMenu = _mainUI.transform.Find("PauseMenu").gameObject;
-        
+
         _hud = _mainUI.transform.Find("HUD");
         var hudContainer = _hud.Find("Container");
         _livesText = hudContainer.Find("Lives")?.transform.Find("LivesText").GetComponent<TextMeshProUGUI>();
         _scoreText = hudContainer.Find("ScoreText")?.GetComponent<TextMeshProUGUI>();
         _timerText = hudContainer.Find("TimerText")?.GetComponent<TextMeshProUGUI>();
-        
+
         ResetGame(true);
     }
-    
+
     private void Update()
     {
         if (currentController && !currentController.IsDead && !isCompletingLevel && !isStartingLevel)
@@ -97,10 +99,10 @@ public class GameManager : MonoBehaviour
                 Time.timeScale = isGamePaused ? 0f : 1f;
             }
         }
-        
+
         _livesText?.SetText($"{CurrentLives}");
         _scoreText?.SetText($"SCORE {CurrentScore}");
-        
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             TogglePause();
@@ -149,7 +151,7 @@ public class GameManager : MonoBehaviour
         TotalScore = 0;
         CurrentLevel = 1;
         CurrentLives = StartingLives;
-        
+
         StartCoroutine(LoadScene(MainMenu));
     }
 
@@ -159,7 +161,6 @@ public class GameManager : MonoBehaviour
         TotalScore = 0;
         CurrentLevel = 1;
         CurrentLives = StartingLives;
-
         Instance.StartCoroutine(Instance.LoadLevel());
     }
 
@@ -168,14 +169,14 @@ public class GameManager : MonoBehaviour
         TotalScore += CurrentScore;
         CurrentScore = TotalScore;
         CurrentLevel++;
-        
+
         if (CurrentLevel > NumLevels)
         {
             Instance.StartCoroutine(Instance.LoadScene(VictoryScene));
             return;
         }
-
-        Instance.StartCoroutine(Instance.LoadLevel());
+        
+        Instance.StartCoroutine(Instance.LoadLevel());        
     }
 
     private IEnumerator LoadLevel()
@@ -183,38 +184,67 @@ public class GameManager : MonoBehaviour
         isStartingLevel = true;
         yield return new WaitForSecondsRealtime(0.5f);
         yield return LoadScene(LevelPrefix + CurrentLevel, true);
-        isStartingLevel = false;
+        
+        isStartingLevel = false; 
     }
 
     private IEnumerator LoadScene(string sceneName, bool showLoadingScreen = false, bool respawn = false)
     {
+        DisablePlayerController();
         isGamePaused = false;
         currentController = null;
         LevelTimer = ClearTimer;
         Time.timeScale = 0;
-        
-        SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+
+        SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
 
         _hud.gameObject.SetActive(false);
         if (showLoadingScreen)
         {
             StartCoroutine(FadeScreen(false));
-            StartCoroutine(FadeScreen(true,2f));
+            StartCoroutine(FadeScreen(true, 2f));
+
             yield return _loadingScreen.ShowLoadingScreen(respawn);
         }
         StartCoroutine(FadeScreen());
-        
-        if (sceneName.ToLowerInvariant().Contains(LevelPrefix.ToLowerInvariant())) 
+
+        if (sceneName.ToLowerInvariant().Contains(LevelPrefix.ToLowerInvariant()))
             GetPlayerController();
-        
         Time.timeScale = 1;
+        EnablePlayerController();
+        if (AudioManager.instance)
+        {
+            AudioManager.instance.ChangeMusicSound(sceneName);
+        }
+    }
+
+    private void DisablePlayerController()
+    {
+        player = GameObject.FindGameObjectWithTag("Player");
+        if (player && player.TryGetComponent<PlayerInput>(out var playerInput))
+        {
+            playerInput.enabled = false;
+        }
+    }
+
+    private void EnablePlayerController()
+    {
+        player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            PlayerInput playerInput = player.GetComponent<PlayerInput>();
+            if (playerInput != null)
+            {
+                playerInput.enabled = true;
+            }
+        }
     }
 
     private void GetPlayerController()
     {
         var player = GameObject.FindGameObjectWithTag("Player");
         if (!player) return;
-        
+
         _hud.gameObject.SetActive(true);
         currentController = player.GetComponent<PlayerController>();
         currentController.OnDeath += () =>
@@ -225,6 +255,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator OnPlayerDeath()
     {
+        DisablePlayerController();
         _hud.gameObject.SetActive(false);
         CurrentLives--;
         CurrentScore = 0;
@@ -236,6 +267,10 @@ public class GameManager : MonoBehaviour
         
         if (CurrentLives == 0)
         {
+            if (AudioManager.instance)
+            {
+                AudioManager.instance.PlaySound(AudioManager.instance.loseClip);
+            }
             yield return _gameOverScreen.ShowGameOverScreen();
             ResetGame();
         }
@@ -247,6 +282,10 @@ public class GameManager : MonoBehaviour
 
     public static void CompleteLevel()
     {
+        if (AudioManager.instance)
+        {
+            AudioManager.instance.EndLevel();
+        }
         Instance.StartCoroutine(OnCompleteLevel());
     }
     
@@ -272,12 +311,16 @@ public class GameManager : MonoBehaviour
         {
             beastSprite = candidates[0];
         }
-
         if (CurrentLevel != NumLevels && beastSprite)
         {
+            if (AudioManager.instance)
+            {
+                AudioManager.instance.PlaySound(AudioManager.instance.movingLevelClip);
+            }
             yield return beastSprite.StartEndAnimation();
         }
-        
+
+       
         AdvanceLevel();
         
         isCompletingLevel = false;
@@ -334,6 +377,23 @@ public class GameManager : MonoBehaviour
         {
             isGamePaused = !isGamePaused;
             _pauseMenu.SetActive(isGamePaused);
+            if (isGamePaused) {
+                DisablePlayerController();
+            } else {
+                EnablePlayerController();
+            } 
+            if (AudioManager.instance)
+            {
+                AudioManager.instance.PlaySound(AudioManager.instance.menuClickClip);
+                if (isGamePaused)
+                {
+                    AudioManager.instance.musicSource.volume = 0.25f;
+                }
+                else
+                {
+                    AudioManager.instance.musicSource.volume = 0.5f;
+                }
+            }
             if (isGamePaused)
             {
                 OnPaused?.Invoke();
@@ -348,6 +408,11 @@ public class GameManager : MonoBehaviour
         _pauseMenu.SetActive(false);
         CurrentScore = 0;
         StartCoroutine(LoadLevel());
+        if (AudioManager.instance)
+        {
+            AudioManager.instance.PlaySound(AudioManager.instance.menuClickClip);
+            AudioManager.instance.musicSource.volume = 0.5f;
+        }
     }
 
     public void ReturnToMainMenu()
@@ -355,6 +420,11 @@ public class GameManager : MonoBehaviour
         isGamePaused = false;
         _pauseMenu.SetActive(false);
         ResetGame();
+        if (AudioManager.instance)
+        {
+            AudioManager.instance.PlaySound(AudioManager.instance.menuClickClip);
+            AudioManager.instance.musicSource.volume = 0.5f;
+        }
     }
 
     private static Tuple<int, int> TimeToMinsAndSecs(float time)

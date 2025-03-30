@@ -226,6 +226,10 @@ public class PlayerRewindController: MonoBehaviour, ICreationObserver<Rewindable
         
         rewoundObject = rewindable;
         OnToggleRewind();
+        if (AudioManager.instance)
+        {
+            AudioManager.instance.PlaySound(AudioManager.instance.rewindObjectClip);
+        }
         RewindActive = true;
 
         yield return rewindable.Rewind();
