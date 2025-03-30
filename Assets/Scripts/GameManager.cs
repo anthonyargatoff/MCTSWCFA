@@ -248,9 +248,12 @@ public class GameManager : MonoBehaviour
     public static void StartGame()
     {
         Physics2D.queriesHitTriggers = true;
+        
         TotalScore = 0;
+        CurrentScore = 0;
         CurrentLevel = 1;
         CurrentLives = StartingLives;
+        
         Instance.StartCoroutine(Instance.LoadLevel());
     }
 
@@ -279,7 +282,13 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator LoadScene(string sceneName, bool showLoadingScreen = false, bool respawn = false)
     {
-        AudioManager.ResetSounds();
+        var currentLower = SceneManager.GetActiveScene().name.ToLowerInvariant();
+        var lower = sceneName.ToLowerInvariant();
+        var isTutorial = lower.Contains(TutorialPrefix.ToLowerInvariant());
+        var isContinuingTutorial = currentLower.Contains(TutorialPrefix.ToLowerInvariant()) && isTutorial;
+        var isLevel = lower.Contains(LevelPrefix.ToLowerInvariant());
+
+        AudioManager.ResetSounds(isTutorial);
         isGamePaused = false;
         currentController = null;
         LevelTimer = ClearTimer;
@@ -295,12 +304,13 @@ public class GameManager : MonoBehaviour
             yield return _loadingScreen.ShowLoadingScreen(respawn);
         }
         StartCoroutine(FadeScreen());
+
+        if (!isContinuingTutorial)
+        {
+            AudioManager.ChangeBackgroundMusic(sceneName);   
+        }
         
-        AudioManager.ChangeBackgroundMusic(sceneName);
-        
-        var lower = sceneName.ToLowerInvariant();
-        AudioManager.ChangeBackgroundMusic(sceneName);
-        if (lower.Contains(LevelPrefix.ToLowerInvariant()) || lower.Contains(TutorialPrefix.ToLowerInvariant())) 
+        if (isTutorial || isLevel) 
             GetPlayerController();
         
         Time.timeScale = 1;
@@ -309,7 +319,6 @@ public class GameManager : MonoBehaviour
     private void GetPlayerController()
     {
         var player = GameObject.FindGameObjectWithTag("Player");
-        Debug.Log(player);
         if (!player) return;
         
         _hud.gameObject.SetActive(!isInTutorial);
@@ -407,22 +416,28 @@ public class GameManager : MonoBehaviour
         CurrentScore += amount;
         if (!source) return;
         
-        if (!_scoreTextPopup)
-        {
-            _scoreTextPopup = Resources.Load<GameObject>("Prefabs/ScoreTextPopup");
-        }
-        if (!_scoreTextPopup) return;
-        
-        var popupObject = Instantiate(_scoreTextPopup, source.position, Quaternion.identity);
-        var popup = popupObject.GetComponent<ScoreTextPopup>();
-        Instance.StartCoroutine(popup.Popup(amount));
+        LaunchPopup(amount, source);
     }
 
     public static void IncreaseTimer(int amount, Transform source = null)
     {
         LevelTimer += amount;
         if (!source) return;
+           
+        var times = TimeToMinsAndSecs(amount);
+        LaunchPopup($"+{times.Item1:0}:{times.Item2:00}", source);
+    }
+
+    public static void IncreaseLives(int amount, Transform source = null)
+    {
+        CurrentLives += amount;
+        if (!source) return;
         
+        LaunchPopup($"{amount}-UP", source);
+    }
+
+    private static void LaunchPopup(object text, Transform source)
+    {
         if (!_scoreTextPopup)
         {
             _scoreTextPopup = Resources.Load<GameObject>("Prefabs/ScoreTextPopup");
@@ -431,10 +446,8 @@ public class GameManager : MonoBehaviour
         
         var popupObject = Instantiate(_scoreTextPopup, source.position, Quaternion.identity);
         var popup = popupObject.GetComponent<ScoreTextPopup>();
-        
-        var times = TimeToMinsAndSecs(amount);
 
-        Instance.StartCoroutine(popup.Popup($"+{times.Item1:0}:{times.Item2:00}"));
+        Instance.StartCoroutine(popup.Popup(text.ToString()));
     }
 
     public void TogglePause()

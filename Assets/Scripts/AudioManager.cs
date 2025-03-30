@@ -46,9 +46,8 @@ public class AudioManager : MonoBehaviour
         public float Pitch { get; private set; }
         public bool Loop { get; }
         public AudioSource CurrentSource { get; private set; }
-
         public bool IsPaused { get; private set; }
-
+        
         public AudioClipRecord(string name, AudioClip clip = null, float volume = 1f, float pitch = 1f, bool loop = false)
         {
             Name = name;
@@ -83,11 +82,11 @@ public class AudioManager : MonoBehaviour
             Destroy(src);
         }
 
-        private static void Play(AudioSource src, float delay = 0f)
+        private void Play(AudioSource src, float delay = 0f)
         {
             if (delay > 0f)
             {
-                src.PlayScheduled(delay);   
+                src.PlayDelayed(delay);   
             }
             else
             {
@@ -154,11 +153,12 @@ public class AudioManager : MonoBehaviour
             }
         }
 
-        public void Reset()
+        public void Reset(bool retainPlayback)
         {
             SetVolume(1f);
             SetPitch(1f);
-            StopClip();
+            if (!retainPlayback)
+                StopClip();
             IsPaused = false;
         }
     }
@@ -188,7 +188,7 @@ public class AudioManager : MonoBehaviour
         new(Audios.VictoryMusic, loop: true),
         new(Audios.Win)
     };
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -224,11 +224,11 @@ public class AudioManager : MonoBehaviour
         _initializedSound = true;
     }
 
-    public static void ResetSounds()
+    public static void ResetSounds(bool retainPlayback = false)
     {
         foreach (var clip in AudioClips.Select(kvp => kvp.Value))
         {
-            clip.Reset();
+            clip.Reset(retainPlayback);
         }
     }
 
@@ -280,7 +280,7 @@ public class AudioManager : MonoBehaviour
                 {
                     PlaySound("win");
                     nextSound = Audios.VictoryMusic;
-                    delay = (float)AudioSettings.dspTime + winGameClip.Clip.length + 1.5f;
+                    delay = winGameClip.Clip.length + 1.5f;
                 }
                 break;
             default:

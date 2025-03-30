@@ -87,7 +87,7 @@ public class TitleRollIn : MonoBehaviour
     {
         while (!this.IsDestroyed() && enabled)
         {
-            mainBg.DOColor(new Color(1, 1, 1, mainBg.color.a > 0.25f ? 0.25f : 0.75f), 1f);
+            mainBg.DOColor(new Color(1, 1, 1, mainBg.color.a > 0.25f ? 0.25f : 0.75f), 1f).SetLink(mainBg.gameObject);
             yield return new WaitForSeconds(1f);
         }
     }
