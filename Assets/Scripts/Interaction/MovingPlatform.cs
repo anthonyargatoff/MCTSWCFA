@@ -6,7 +6,8 @@ public class MovingPlatform : MonoBehaviour
     private Rigidbody2D rb;
 
     public Vector2 DeltaP { get; private set; }
-    private Vector2 prevPosition;
+    public Vector2 prevPosition { get; private set; }
+    public Vector2 CurrentPosition() => rb.position;
     
     private void Awake()
     {

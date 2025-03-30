@@ -285,7 +285,7 @@ public class PlayerController : MonoBehaviour
 
             if (movingPlatform)
             {
-                rb.MovePosition(rb.position + movingPlatform.DeltaP);
+                rb.position += movingPlatform.DeltaP;
             }
         }
     }

@@ -280,7 +280,8 @@ public class AudioManager : MonoBehaviour
                 }
                 break;
             default:
-                if (sceneName.ToLowerInvariant().Contains(GameManager.LevelPrefix.ToLowerInvariant()))
+                var lower = sceneName.ToLowerInvariant();
+                if (lower.Contains(GameManager.LevelPrefix.ToLowerInvariant()) || lower.Contains(GameManager.TutorialPrefix.ToLowerInvariant()))
                 {
                     nextSound = Audios.LevelTheme;
                 }

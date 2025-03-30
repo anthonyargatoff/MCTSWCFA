@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour
     public const string MainMenu = "MainMenu";
     public const string VictoryScene = "VictoryScene";
     public const string LevelPrefix = "LEVEL ";
+    public const string TutorialPrefix = "Tutorial_";
     private const int NumLevels = 4;
     private const int StartingLives = 3;
 
@@ -73,6 +74,10 @@ public class GameManager : MonoBehaviour
 
     private static int frameCount = 0;
     private static float timeSinceLastFrameRateCheck = 0f;
+
+    // Tutorial variables
+    private bool isInTutorial;
+    private static int CurrentTutorialLevel { get; set; }
 
     private GameObject player;
     
@@ -281,9 +286,9 @@ public class GameManager : MonoBehaviour
         LevelTimer = ClearTimer;
         Time.timeScale = 0;
         
-        SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
-
         _hud.gameObject.SetActive(false);
+        yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+        
         if (showLoadingScreen)
         {
             StartCoroutine(FadeScreen(false));
@@ -292,8 +297,9 @@ public class GameManager : MonoBehaviour
         }
         StartCoroutine(FadeScreen());
         
+        var lower = sceneName.ToLowerInvariant();
         AudioManager.ChangeBackgroundMusic(sceneName);
-        if (sceneName.ToLowerInvariant().Contains(LevelPrefix.ToLowerInvariant())) 
+        if (lower.Contains(LevelPrefix.ToLowerInvariant()) || lower.Contains(TutorialPrefix.ToLowerInvariant())) 
             GetPlayerController();
         
         Time.timeScale = 1;
@@ -329,7 +335,7 @@ public class GameManager : MonoBehaviour
         var player = GameObject.FindGameObjectWithTag("Player");
         if (!player) return;
         
-        _hud.gameObject.SetActive(true);
+        _hud.gameObject.SetActive(!isInTutorial);
         currentController = player.GetComponent<PlayerController>();
         currentRewindController = player.GetComponent<PlayerRewindController>();
         currentController.OnDeath += () =>
@@ -341,6 +347,13 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator OnPlayerDeath()
     {
+        if (isInTutorial)
+        {
+            yield return new WaitForSecondsRealtime(2f);
+            yield return LoadScene(SceneManager.GetActiveScene().name);
+            yield break;
+        }
+        
         //DisablePlayerController();
         _hud.gameObject.SetActive(false);
         CurrentLives--;
@@ -493,8 +506,32 @@ public class GameManager : MonoBehaviour
         return new Tuple<int, int>(mins, secs);
     }
 
+    public static void NextTutorial()
+    {
+        Instance.isInTutorial = true;
+        CurrentTutorialLevel++;
+        Instance.StartCoroutine(Instance.LoadScene($"{TutorialPrefix}{CurrentTutorialLevel}"));
+    }
+
+    public static void RestartTutorialLevel()
+    {
+      Instance.StartCoroutine(Instance.LoadScene($"{TutorialPrefix}{CurrentTutorialLevel}"));
+    }
+
+    public static IEnumerator EndTutorial()
+    {
+      TextMeshProUGUI text = GameObject.Find("EndTutorial").GetComponent<TextMeshProUGUI>();
+      text.text = "Congratulations, you've completed the tutorial!";
+      Time.timeScale = 0;
+      yield return new WaitForSecondsRealtime(3);
+      Time.timeScale = 1;
+      Instance.isInTutorial = false;
+      CurrentTutorialLevel = 0;
+      Instance.StartCoroutine(Instance.LoadScene(MainMenu));
+    }
+
     public static float GetScaledFrameCount(int frames)
     {
         return frames * _frameRatio;
-    }
+    }   
 }

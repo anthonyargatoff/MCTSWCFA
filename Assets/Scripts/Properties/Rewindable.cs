@@ -223,7 +223,7 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
             keys[i] = key;
         }
     }
-
+    
     private static bool HasMoved(TransformSnapshot last, TransformSnapshot current)
     {
         var posDelta = (last.Position - current.Position).magnitude;
@@ -257,7 +257,7 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
             snapshotsToRemove.Add(snapshot);
             if (snapshot == null) continue;
 
-            var time = Mathf.Clamp(snapshot.TimeDelta, 0, 0.05f);
+            var time = Mathf.Clamp(snapshot.TimeDelta, 0f, 0.01f);
             if (!HasMoved(snapshot, lastSnapshot)) continue;
 
             transform.DOMove(snapshot.Position, time).SetEase(Ease.Linear).SetLink(gameObject);
