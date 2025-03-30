@@ -8,6 +8,8 @@ using UnityEngine.SceneManagement;
 
 public static class Audios
 {
+    public const string ClockSlowDown = "clockSlowDown";
+    public const string ClockSpeedUp = "clockSpeedUp";
     public const string Destroy = "destroy";
     public const string Die = "die";
     public const string GrabCollectible = "grabcollectible";
@@ -165,6 +167,8 @@ public class AudioManager : MonoBehaviour
     
     private static readonly AudioClipRecord[] ClipList =
     {
+        new(Audios.ClockSlowDown),
+        new(Audios.ClockSpeedUp),
         new(Audios.Destroy),
         new(Audios.Die),
         new(Audios.GrabCollectible),
@@ -352,10 +356,13 @@ public class AudioManager : MonoBehaviour
         
         _currentRewindController.OnRewindToggle.AddListener(mode =>
         {
+            PlaySound(mode ? Audios.ClockSlowDown : Audios.ClockSpeedUp);
             foreach (var clip in AudioClips.Select(kvp => kvp.Value))
             {
-                if (clip.Loop) 
+                if (clip.Loop)
                     clip.SetPitch(mode ? 0.5f : 1.0f);
+                else if (clip.Name == Audios.ClockSlowDown || clip.Name == Audios.ClockSpeedUp)
+                    continue;
                 else clip.SetVolume(mode ? 0f : 1.0f);
             }
         });

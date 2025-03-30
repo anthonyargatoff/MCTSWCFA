@@ -280,7 +280,6 @@ public class GameManager : MonoBehaviour
     private IEnumerator LoadScene(string sceneName, bool showLoadingScreen = false, bool respawn = false)
     {
         AudioManager.ResetSounds();
-        //DisablePlayerController();
         isGamePaused = false;
         currentController = null;
         LevelTimer = ClearTimer;
@@ -297,38 +296,15 @@ public class GameManager : MonoBehaviour
         }
         StartCoroutine(FadeScreen());
         
+        AudioManager.ChangeBackgroundMusic(sceneName);
+        
         var lower = sceneName.ToLowerInvariant();
         AudioManager.ChangeBackgroundMusic(sceneName);
         if (lower.Contains(LevelPrefix.ToLowerInvariant()) || lower.Contains(TutorialPrefix.ToLowerInvariant())) 
             GetPlayerController();
         
         Time.timeScale = 1;
-        //EnablePlayerController()
     }
-
-    /*
-    private void DisablePlayerController()
-    {
-        player = GameObject.FindGameObjectWithTag("Player");
-        if (player && player.TryGetComponent<PlayerInput>(out var playerInput))
-        {
-            playerInput.enabled = false;
-        }
-    }
-
-    private void EnablePlayerController()
-    {
-        player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            PlayerInput playerInput = player.GetComponent<PlayerInput>();
-            if (playerInput != null)
-            {
-                playerInput.enabled = true;
-            }
-        }
-    }
-    */
 
     private void GetPlayerController()
     {
@@ -354,7 +330,6 @@ public class GameManager : MonoBehaviour
             yield break;
         }
         
-        //DisablePlayerController();
         _hud.gameObject.SetActive(false);
         CurrentLives--;
         CurrentScore = 0;
