@@ -64,7 +64,7 @@ public class AudioManager : MonoBehaviour
             if (Loop)
             {
                 var src = GetOrAddSource(volume, pitch);
-                Play(src, delay); 
+                Instance.StartCoroutine(Play(src, delay)); 
             }
             else
             {
@@ -84,16 +84,14 @@ public class AudioManager : MonoBehaviour
             Destroy(src);
         }
 
-        private void Play(AudioSource src, float delay = 0f)
+        private IEnumerator Play(AudioSource src, float delay = 0f)
         {
             if (delay > 0f)
             {
-                src.PlayDelayed(delay);   
+                yield return new WaitForSecondsRealtime(delay);
             }
-            else
-            {
-                src.Play();
-            }
+
+            src.Play();
         }
         
         public void StopClip()
