@@ -30,7 +30,7 @@ public class MovingPlatform : MonoBehaviour
 
     private void FixedUpdate()
     {
-        DeltaP = (rb.position - prevPosition);
+        DeltaP = rb.position - prevPosition;
         prevPosition = rb.position;
     }
 }

@@ -40,7 +40,8 @@ public class SparkyController: SpriteControllerMonoBehaviour
 
     private const int maxFrame = 7;
     private int frame = 0;
-    private const int framesBetweenUpdate = 120;
+    
+    private const int framesBetweenUpdate = 10;
     private int framesSinceLastUpdate = 0;
     
     private Vector2 goalPosition = Vector2.zero;
@@ -50,10 +51,10 @@ public class SparkyController: SpriteControllerMonoBehaviour
     private bool wasGrounded;
     private Vector3 lastPosition = Vector3.zero;
     
-    private const int framesBetweenPositionCheck = 120;
+    private const int framesBetweenPositionCheck = 60;
     private int framesSinceLastPositionCheck;
 
-    private const int framesBetweenLook = 240;
+    private const int framesBetweenLook = 120;
     private int framesSinceLastLook;
 
     private const float ladderCooldown = 3f;
@@ -86,7 +87,7 @@ public class SparkyController: SpriteControllerMonoBehaviour
     {
         if (Time.timeScale <= 0) return;
         HandleSpriteSwap();
-        if (framesSinceLastUpdate > framesBetweenUpdate)
+        if (framesSinceLastUpdate > GameManager.GetScaledFrameCount(framesBetweenUpdate))
         {
             frame++;
             if (frame >= maxFrame) frame = 0;
@@ -94,7 +95,7 @@ public class SparkyController: SpriteControllerMonoBehaviour
         }
         framesSinceLastUpdate++;
 
-        if (framesSinceLastPositionCheck > framesBetweenPositionCheck)
+        if (framesSinceLastPositionCheck > GameManager.GetScaledFrameCount(framesBetweenPositionCheck))
         {
             if (Vector3.Distance(lastPosition,transform.position) < 0.05f) goalPosition = Vector2.zero;
             lastPosition = transform.position;
@@ -102,7 +103,7 @@ public class SparkyController: SpriteControllerMonoBehaviour
         }
         framesSinceLastPositionCheck++;
 
-        if (framesSinceLastLook > framesBetweenLook)
+        if (framesSinceLastLook > GameManager.GetScaledFrameCount(framesBetweenLook))
         {
             var eyeLine = CheckEyeLine(Math.Sign(transform.localScale.x) == -1);
             if (eyeLine.Item2.collider != null)
@@ -282,12 +283,12 @@ public class SparkyController: SpriteControllerMonoBehaviour
                 forceRight = true;
             goalPosition = Vector2.zero;
         }
-
         if (other.gameObject.CompareTag("HammerHitbox"))
         {
             var player = other.transform.parent?.GetComponent<PlayerController>();
             if (!player || !player.UsingHammer) return;
             Destroy(gameObject);
+            AudioManager.PlaySound(Audios.Destroy);
             GameManager.IncreaseScore((int) (ScoreEvent.BarrelHammerDestroy * GetModifier()), transform);
         }
         if (other.gameObject.name == "BarrelCleanUp")

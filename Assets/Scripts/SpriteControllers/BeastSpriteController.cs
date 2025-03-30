@@ -29,7 +29,7 @@ public class BeastSpriteController: SpriteControllerMonoBehaviour
     private string currentSprite;
     
     private bool walkFrame;
-    private const int FramesBetweenWalkUpdate = 30;
+    private const int FramesBetweenWalkUpdate = 10;
     private int framesSinceLastWalkUpdate = 0;
 
     private int barrelThrowsQueued = 0;
@@ -75,7 +75,7 @@ public class BeastSpriteController: SpriteControllerMonoBehaviour
         if (GameManager.isGamePaused || isPlayingEndAnim || (rewindController?.IsRewinding ?? false)) return;
         HandleSpriteSwap();
         
-        if (framesSinceLastWalkUpdate > FramesBetweenWalkUpdate)
+        if (framesSinceLastWalkUpdate > GameManager.GetScaledFrameCount(FramesBetweenWalkUpdate))
         {
             walkFrame = rb && Mathf.Abs(rb.linearVelocityX) > 0.01f && !walkFrame;
             framesSinceLastWalkUpdate = 0;

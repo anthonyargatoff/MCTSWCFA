@@ -45,7 +45,8 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
     public UnityEvent onMouseDown { get; } = new();
 
     private Collider2D thisCollider;
-
+    private Rigidbody2D rb;
+    
     private void Awake()
     {
         ICreationObservable<Rewindable>.NotifyCreated(this);
@@ -68,6 +69,7 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
         );
         
         thisCollider = GetComponent<Collider2D>();
+        rb = GetComponent<Rigidbody2D>();
         
         RecursiveChildParse(transform);
     }
@@ -172,6 +174,21 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
                 }
             }
         }
+        
+        if (isRewinding) return;
+
+        var current = new TransformSnapshot(transform, lastUpdate);
+        if (snapshots.Count == 0 || (snapshots.Count > 0 && HasMoved(snapshots.Last(), current) && lastUpdate > 0.01f))
+        {
+            snapshots.Add(new TransformSnapshot(transform, lastUpdate));
+            lastUpdate = 0;
+            if (snapshots.Count > 500)
+            {
+                snapshots.RemoveAt(0);
+            }
+        }
+        
+        lastUpdate += Time.unscaledDeltaTime;
     }
 
     private static ParticleSystem.MinMaxCurve UpdateMinMaxCurve(ParticleSystem.MinMaxCurve value, ParticleSystem.MinMaxCurve baseValue, float mag)
@@ -206,24 +223,6 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
             keys[i] = key;
         }
     }
-    
-    private void FixedUpdate()
-    {
-        if (isRewinding) return;
-
-        var current = new TransformSnapshot(transform, lastUpdate);
-        if (snapshots.Count == 0 || (snapshots.Count > 0 && HasMoved(snapshots.Last(), current) && lastUpdate > 0.01f))
-        {
-            snapshots.Add(new TransformSnapshot(transform, lastUpdate));
-            lastUpdate = 0;
-            if (snapshots.Count > 500)
-            {
-                snapshots.RemoveAt(0);
-            }
-        }
-        
-        lastUpdate += Time.fixedDeltaTime;
-    }
 
     private static bool HasMoved(TransformSnapshot last, TransformSnapshot current)
     {
@@ -245,7 +244,7 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
         isRewinding = true;
 
         startPfx.Item1.Play();
-        
+
         var snapshotsToUse = new List<TransformSnapshot>(snapshots);
         var snapshotsToRemove = new List<TransformSnapshot>();
         snapshotsToUse.Reverse();
@@ -258,13 +257,13 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
             snapshotsToRemove.Add(snapshot);
             if (snapshot == null) continue;
 
-            var time = Mathf.Clamp(snapshot.TimeDelta, 0.01f, 0.5f);
+            var time = Mathf.Clamp(snapshot.TimeDelta, 0, 0.05f);
             if (!HasMoved(snapshot, lastSnapshot)) continue;
-            
+
             transform.DOMove(snapshot.Position, time).SetEase(Ease.Linear).SetLink(gameObject);
             transform.DORotateQuaternion(snapshot.Rotation, time).SetEase(Ease.Linear).SetLink(gameObject);
             transform.DOScale(snapshot.Scale, time).SetEase(Ease.Linear).SetLink(gameObject);
-            
+
             yield return new WaitForSeconds(time);
             lastSnapshot = snapshot;
         } while (snapshotsToUse.Count > 0 && !forceCancelRewind);
@@ -273,6 +272,19 @@ public class Rewindable: MonoBehaviour, ICreationObservable<Rewindable>
         {
             activePfx.Item1.Stop();
             endPfx.Item1.Play();
+        }
+
+        if (!rb.IsDestroyed()) {
+            var wasDynamic = rb.bodyType == RigidbodyType2D.Dynamic;
+            if (wasDynamic)
+            {
+                rb.linearVelocity = Vector2.zero;
+                rb.bodyType = RigidbodyType2D.Kinematic;
+
+                yield return new WaitForSeconds(0.5f);
+                if (!rb.IsDestroyed())
+                    rb.bodyType = RigidbodyType2D.Dynamic;
+            }
         }
 
         forceCancelRewind = false;

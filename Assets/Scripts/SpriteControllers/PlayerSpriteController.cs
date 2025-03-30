@@ -56,13 +56,17 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
     private SpriteRenderer hammerSprite;
     private SpriteRenderer timewarpSprite;
 
-    private const int FramesBetweenWalkUpdate = 30;
+    private const int FramesBetweenWalkUpdate = 10;
     private int framesSinceLastWalkUpdate = 0;
     
-    private const int FramesBetweenHammerUpdate = 60;
-    private int framesSinceLastHammerUpdate = 0;
+    private int walkPitchIndex;
+    private int climbPitchIndex;
+    private float[] pitches = { 1.0f, 1.25f };
     
-    private const int FramesBetweenClimbUpdate = 30;
+    private const int FramesBetweenHammerUpdate = 15;
+    private int framesSinceLastHammerUpdate = 0;
+
+    private const int FramesBetweenClimbUpdate = 5;
     private int framesSinceLastClimbUpdate = 0;
 
     private float lastY = 0;
@@ -133,9 +137,16 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
     private void Update()
     {
         if (isInVictoryScene) return;
-        
-        hammerSpriteGameObject.transform.localScale = new Vector3(Mathf.Sign(transform.localScale.x),1,1);
+
+        var prevY = lastY;
         HandleSpriteSwap();
+
+        if (GameManager.isCompletingLevel || controller.IsDead)
+        {
+            TriggerParticles(RunPfx, false);
+            TriggerParticles(LandPfx, false);
+            return;
+        }
         
         particles.TryGetValue(RunPfx, out var runPfx);
         if (runPfx && rb)
@@ -158,19 +169,37 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
             TriggerParticles(LandPfx);
         } 
         
-        if (framesSinceLastWalkUpdate > FramesBetweenWalkUpdate)
+        if (framesSinceLastWalkUpdate > GameManager.GetScaledFrameCount(FramesBetweenWalkUpdate))
         {
             walkFrame = controller.IsWalking && !walkFrame;
+            if (controller.IsWalking)
+            {
+                AudioManager.PlaySound(Audios.Move, volume: controller.UsingHammer ? 0f : 0.5f, pitch: pitches[walkPitchIndex]);
+                walkPitchIndex++;
+                if (walkPitchIndex >= pitches.Length) walkPitchIndex = 0;
+            }
+            
+            if (controller.IsClimbing && Mathf.Abs(rb.linearVelocityY) > 0.01f)
+            {
+                AudioManager.PlaySound(Audios.Ladder, volume: controller.UsingHammer ? 0f: 0.5f, pitch: pitches[climbPitchIndex]);
+                climbPitchIndex++;
+                if (climbPitchIndex >= pitches.Length) climbPitchIndex = 0;
+            }
+            
             framesSinceLastWalkUpdate = 0;
         }
+        if (!controller.IsWalking)
+        {
+            walkPitchIndex = 0;
+        }
         
-        if (framesSinceLastHammerUpdate > FramesBetweenHammerUpdate)
+        if (framesSinceLastHammerUpdate > GameManager.GetScaledFrameCount(FramesBetweenHammerUpdate))
         {
             hammerFrame = controller.UsingHammer && !hammerFrame;
             framesSinceLastHammerUpdate = 0;
         }
         
-        if (framesSinceLastClimbUpdate > FramesBetweenClimbUpdate)
+        if (framesSinceLastClimbUpdate > GameManager.GetScaledFrameCount(FramesBetweenClimbUpdate))
         {
             climbFrame = controller.IsClimbing && !climbFrame;
             framesSinceLastClimbUpdate = 0;

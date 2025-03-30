@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1467208606186984637}
   - component: {fileID: 7998543188101056746}
   - component: {fileID: 4853365984823878141}
-  - component: {fileID: 1096537640507049298}
+  - component: {fileID: 736259003950066059}
   m_Layer: 12
   m_Name: Sparky
   m_TagString: HostileEntity
@@ -102,6 +102,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8eab0c8e84f4c23b2b02fa3836cd78e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isBeingSpawned: 0
 --- !u!50 &4853365984823878141
 Rigidbody2D:
   serializedVersion: 5
@@ -129,8 +130,8 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!61 &1096537640507049298
-BoxCollider2D:
+--- !u!70 &736259003950066059
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -163,15 +164,6 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
-    newSize: {x: 1, y: 1}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 0.5, y: 0.5}
-  m_EdgeRadius: 0.25
+  m_Offset: {x: 0, y: -0.05}
+  m_Size: {x: 0.95, y: 0.95}
+  m_Direction: 0
