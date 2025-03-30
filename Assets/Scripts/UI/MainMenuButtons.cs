@@ -24,5 +24,6 @@ public class MainMenuButtons : MonoBehaviour
     public void StartTutorial()
     {
         GameManager.NextTutorial();
-    }
+        AudioManager.PlaySound(Audios.MenuClick);
+    } 
 }

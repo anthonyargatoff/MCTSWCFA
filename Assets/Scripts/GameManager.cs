@@ -147,7 +147,7 @@ public class GameManager : MonoBehaviour
         _livesText = hudContainer.Find("Lives")?.transform.Find("LivesText").GetComponent<TextMeshProUGUI>();
         _scoreText = hudContainer.Find("ScoreText")?.GetComponent<TextMeshProUGUI>();
         _timerText = hudContainer.Find("TimerText")?.GetComponent<TextMeshProUGUI>();
-
+        
         ResetGame(true);
     }
     
@@ -439,17 +439,12 @@ public class GameManager : MonoBehaviour
 
     public void TogglePause()
     {
-        if ((currentController && !currentController.IsDead) || isInTutorial)
+        if (currentController && !currentController.IsDead)
         {
             AudioManager.PlaySound(Audios.MenuClick);
             isGamePaused = !isGamePaused;
             AudioManager.OnPauseToggle(isGamePaused);
             _pauseMenu.SetActive(isGamePaused);
-            /*if (isGamePaused) {
-                DisablePlayerController();
-            } else {
-                EnablePlayerController();
-            } */
             if (isGamePaused)
             {
                 OnPaused?.Invoke();
@@ -464,7 +459,6 @@ public class GameManager : MonoBehaviour
         _pauseMenu.SetActive(false);
         CurrentScore = 0;
         AudioManager.PlaySound(Audios.MenuClick);
-        StartCoroutine(LoadLevel());
         if (isInTutorial) {
           RestartTutorialLevel();
         } else {
