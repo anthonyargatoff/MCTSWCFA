@@ -59,6 +59,10 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
     private const int FramesBetweenWalkUpdate = 10;
     private int framesSinceLastWalkUpdate = 0;
     
+    private int walkPitchIndex;
+    private int climbPitchIndex;
+    private float[] pitches = { 1.0f, 1.3f };
+    
     private const int FramesBetweenHammerUpdate = 15;
     private int framesSinceLastHammerUpdate = 0;
 
@@ -133,8 +137,16 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
     private void Update()
     {
         if (isInVictoryScene) return;
-        
+
+        var prevY = lastY;
         HandleSpriteSwap();
+
+        if (GameManager.isCompletingLevel || controller.IsDead)
+        {
+            TriggerParticles(RunPfx, false);
+            TriggerParticles(LandPfx, false);
+            return;
+        }
         
         particles.TryGetValue(RunPfx, out var runPfx);
         if (runPfx && rb)
@@ -160,7 +172,25 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
         if (framesSinceLastWalkUpdate > GameManager.GetScaledFrameCount(FramesBetweenWalkUpdate))
         {
             walkFrame = controller.IsWalking && !walkFrame;
+            if (controller.IsWalking)
+            {
+                AudioManager.PlaySound(Audios.Move, volume: 0.5f, pitch: pitches[walkPitchIndex]);
+                walkPitchIndex++;
+                if (walkPitchIndex >= pitches.Length) walkPitchIndex = 0;
+            }
+            
+            if (controller.IsClimbing && Mathf.Abs(rb.linearVelocityY) > 0.01f)
+            {
+                AudioManager.PlaySound(Audios.Ladder, volume: 0.5f, pitch: pitches[climbPitchIndex]);
+                climbPitchIndex++;
+                if (climbPitchIndex >= pitches.Length) climbPitchIndex = 0;
+            }
+            
             framesSinceLastWalkUpdate = 0;
+        }
+        if (!controller.IsWalking)
+        {
+            walkPitchIndex = 0;
         }
         
         if (framesSinceLastHammerUpdate > GameManager.GetScaledFrameCount(FramesBetweenHammerUpdate))

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using DG.Tweening;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -25,13 +24,13 @@ public class GameManager : MonoBehaviour
     private const int TargetFrameRate = 60;
     private static float _frameRatio = 1.0f;
     
-    private const string DebugScene = "SampleScene";
+    public const string DebugScene = "SampleScene";
     private static bool _initialized;
     
-    private const string MainMenu = "MainMenu";
-    private const string VictoryScene = "VictoryScene";
-    private const string LevelPrefix = "LEVEL ";
-    private const int NumLevels = 3;
+    public const string MainMenu = "MainMenu";
+    public const string VictoryScene = "VictoryScene";
+    public const string LevelPrefix = "LEVEL ";
+    private const int NumLevels = 4;
     private const int StartingLives = 3;
 
     private static GameObject _scoreTextPopup;
@@ -74,6 +73,8 @@ public class GameManager : MonoBehaviour
 
     private static int frameCount = 0;
     private static float timeSinceLastFrameRateCheck = 0f;
+
+    private GameObject player;
     
     private void Awake()
     {
@@ -141,11 +142,10 @@ public class GameManager : MonoBehaviour
         _livesText = hudContainer.Find("Lives")?.transform.Find("LivesText").GetComponent<TextMeshProUGUI>();
         _scoreText = hudContainer.Find("ScoreText")?.GetComponent<TextMeshProUGUI>();
         _timerText = hudContainer.Find("TimerText")?.GetComponent<TextMeshProUGUI>();
-        
+
         ResetGame(true);
     }
-
-    private bool hadCtrlDown;
+    
     private void Update()
     {
         if (Application.isFocused)
@@ -167,11 +167,6 @@ public class GameManager : MonoBehaviour
 
         if (currentController && !currentController.IsDead && !isCompletingLevel && !isStartingLevel)
         {
-            if (!currentRewindController)
-            {
-                currentRewindController = currentController.GetComponent<PlayerRewindController>();
-            }
-
             if (currentRewindController && !currentRewindController.IsRewinding || !currentRewindController)
             {
                 Time.timeScale = isGamePaused ? 0f : 1f;
@@ -251,11 +246,10 @@ public class GameManager : MonoBehaviour
         TotalScore = 0;
         CurrentLevel = 1;
         CurrentLives = StartingLives;
-
         Instance.StartCoroutine(Instance.LoadLevel());
     }
 
-    private static void AdvanceLevel()
+    private static IEnumerator AdvanceLevel()
     {
         TotalScore += CurrentScore;
         CurrentScore = TotalScore;
@@ -263,11 +257,11 @@ public class GameManager : MonoBehaviour
         
         if (CurrentLevel > NumLevels)
         {
-            Instance.StartCoroutine(Instance.LoadScene(VictoryScene));
-            return;
+            yield return Instance.LoadScene(VictoryScene);
+            yield break;
         }
-
-        Instance.StartCoroutine(Instance.LoadLevel());
+        
+        yield return Instance.LoadLevel();        
     }
 
     private IEnumerator LoadLevel()
@@ -280,6 +274,8 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator LoadScene(string sceneName, bool showLoadingScreen = false, bool respawn = false)
     {
+        AudioManager.ResetSounds();
+        //DisablePlayerController();
         isGamePaused = false;
         currentController = null;
         LevelTimer = ClearTimer;
@@ -296,11 +292,37 @@ public class GameManager : MonoBehaviour
         }
         StartCoroutine(FadeScreen());
         
+        AudioManager.ChangeBackgroundMusic(sceneName);
         if (sceneName.ToLowerInvariant().Contains(LevelPrefix.ToLowerInvariant())) 
             GetPlayerController();
         
         Time.timeScale = 1;
+        //EnablePlayerController()
     }
+
+    /*
+    private void DisablePlayerController()
+    {
+        player = GameObject.FindGameObjectWithTag("Player");
+        if (player && player.TryGetComponent<PlayerInput>(out var playerInput))
+        {
+            playerInput.enabled = false;
+        }
+    }
+
+    private void EnablePlayerController()
+    {
+        player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            PlayerInput playerInput = player.GetComponent<PlayerInput>();
+            if (playerInput != null)
+            {
+                playerInput.enabled = true;
+            }
+        }
+    }
+    */
 
     private void GetPlayerController()
     {
@@ -309,14 +331,17 @@ public class GameManager : MonoBehaviour
         
         _hud.gameObject.SetActive(true);
         currentController = player.GetComponent<PlayerController>();
+        currentRewindController = player.GetComponent<PlayerRewindController>();
         currentController.OnDeath += () =>
         {
             StartCoroutine(OnPlayerDeath());
         };
+        AudioManager.LinkPlayerController(currentController,currentRewindController);
     }
 
     private IEnumerator OnPlayerDeath()
     {
+        //DisablePlayerController();
         _hud.gameObject.SetActive(false);
         CurrentLives--;
         CurrentScore = 0;
@@ -328,6 +353,7 @@ public class GameManager : MonoBehaviour
         
         if (CurrentLives == 0)
         {
+            AudioManager.PlaySound(Audios.Lose);
             yield return _gameOverScreen.ShowGameOverScreen();
             ResetGame();
         }
@@ -364,13 +390,13 @@ public class GameManager : MonoBehaviour
         {
             beastSprite = candidates[0];
         }
-
         if (CurrentLevel != NumLevels && beastSprite)
         {
+            AudioManager.PlaySound(Audios.MovingLevel);
             yield return beastSprite.StartEndAnimation();
         }
-        
-        AdvanceLevel();
+       
+        yield return AdvanceLevel();
         
         isCompletingLevel = false;
     }
@@ -426,8 +452,15 @@ public class GameManager : MonoBehaviour
     {
         if (currentController && !currentController.IsDead)
         {
+            AudioManager.PlaySound(Audios.MenuClick);
             isGamePaused = !isGamePaused;
+            AudioManager.OnPauseToggle(isGamePaused);
             _pauseMenu.SetActive(isGamePaused);
+            /*if (isGamePaused) {
+                DisablePlayerController();
+            } else {
+                EnablePlayerController();
+            } */
             if (isGamePaused)
             {
                 OnPaused?.Invoke();
@@ -441,6 +474,7 @@ public class GameManager : MonoBehaviour
         isGamePaused = false;
         _pauseMenu.SetActive(false);
         CurrentScore = 0;
+        AudioManager.PlaySound(Audios.MenuClick);
         StartCoroutine(LoadLevel());
     }
 
@@ -448,6 +482,7 @@ public class GameManager : MonoBehaviour
     {
         isGamePaused = false;
         _pauseMenu.SetActive(false);
+        AudioManager.PlaySound(Audios.MenuClick);
         ResetGame();
     }
 

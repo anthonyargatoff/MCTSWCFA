@@ -82,6 +82,7 @@ public class PlayerController : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, JumpSpeed);
             OnJumped?.Invoke();
+            AudioManager.PlaySound(Audios.Jump);
         }
     }
 
@@ -93,7 +94,7 @@ public class PlayerController : MonoBehaviour
         {
             FacingDirection = (int) Mathf.Sign(input.x);   
         }
-        
+
         if (CanClimb && input.y != 0)
         {
             moveInput = input.y;
@@ -103,7 +104,7 @@ public class PlayerController : MonoBehaviour
                 ToggleGroundCollisions(false);
                 StartCoroutine(SmoothMoveToLadder(ladderCenter));
             }
-            
+
             IsClimbing = true;
 
             rb.gravityScale = 0;
@@ -225,7 +226,7 @@ public class PlayerController : MonoBehaviour
             //StartCoroutine(Utilities.DrawDebugRay(rayPos, Vector2.down, transform.lossyScale.y / 2 + 0.1f));
             if (IsGrounded) break;
         }
-        IsWalking = IsGrounded && Mathf.Abs(moveInput) > 0.05f;
+        IsWalking = IsGrounded && !IsClimbing && Mathf.Abs(moveInput) > 0.05f;
         
         if (!IsClimbing)
         {
@@ -333,13 +334,17 @@ public class PlayerController : MonoBehaviour
 
         const float inc = 0.1f;
         float hammerTime = 0;
-        
+
+        AudioManager.PlayHammerMusic();
+
         while (UsingHammer && hammerTime <= HammerDuration)
         {
             yield return new WaitForSeconds(inc);
             hammerTime += inc;
         }
 
+        AudioManager.StopHammerMusic();
+        
         UsingHammer = false;
     }
 

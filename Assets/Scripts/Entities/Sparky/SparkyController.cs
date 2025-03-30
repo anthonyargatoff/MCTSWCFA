@@ -288,6 +288,7 @@ public class SparkyController: SpriteControllerMonoBehaviour
             var player = other.transform.parent?.GetComponent<PlayerController>();
             if (!player || !player.UsingHammer) return;
             Destroy(gameObject);
+            AudioManager.PlaySound(Audios.Destroy);
             GameManager.IncreaseScore((int) (ScoreEvent.BarrelHammerDestroy * GetModifier()), transform);
         }
         if (other.gameObject.name == "BarrelCleanUp")
