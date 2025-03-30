@@ -275,7 +275,6 @@ public class GameManager : MonoBehaviour
     private IEnumerator LoadScene(string sceneName, bool showLoadingScreen = false, bool respawn = false)
     {
         AudioManager.ResetSounds();
-        //DisablePlayerController();
         isGamePaused = false;
         currentController = null;
         LevelTimer = ClearTimer;
@@ -297,32 +296,7 @@ public class GameManager : MonoBehaviour
             GetPlayerController();
         
         Time.timeScale = 1;
-        //EnablePlayerController()
     }
-
-    /*
-    private void DisablePlayerController()
-    {
-        player = GameObject.FindGameObjectWithTag("Player");
-        if (player && player.TryGetComponent<PlayerInput>(out var playerInput))
-        {
-            playerInput.enabled = false;
-        }
-    }
-
-    private void EnablePlayerController()
-    {
-        player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            PlayerInput playerInput = player.GetComponent<PlayerInput>();
-            if (playerInput != null)
-            {
-                playerInput.enabled = true;
-            }
-        }
-    }
-    */
 
     private void GetPlayerController()
     {
@@ -341,7 +315,6 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator OnPlayerDeath()
     {
-        //DisablePlayerController();
         _hud.gameObject.SetActive(false);
         CurrentLives--;
         CurrentScore = 0;
@@ -456,11 +429,6 @@ public class GameManager : MonoBehaviour
             isGamePaused = !isGamePaused;
             AudioManager.OnPauseToggle(isGamePaused);
             _pauseMenu.SetActive(isGamePaused);
-            /*if (isGamePaused) {
-                DisablePlayerController();
-            } else {
-                EnablePlayerController();
-            } */
             if (isGamePaused)
             {
                 OnPaused?.Invoke();

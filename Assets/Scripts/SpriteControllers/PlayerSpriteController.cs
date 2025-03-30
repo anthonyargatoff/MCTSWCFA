@@ -61,7 +61,7 @@ public class PlayerSpriteController: SpriteControllerMonoBehaviour
     
     private int walkPitchIndex;
     private int climbPitchIndex;
-    private float[] pitches = { 1.0f, 1.3f };
+    private float[] pitches = { 1.0f, 1.25f };
     
     private const int FramesBetweenHammerUpdate = 15;
     private int framesSinceLastHammerUpdate = 0;
