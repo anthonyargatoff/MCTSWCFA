@@ -720,7 +720,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8797346182704159350, guid: bc324b4104b67efa08f40a73326ec03f, type: 3}
       propertyPath: barrelSize
-      value: 0.5
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: 8797346182704159350, guid: bc324b4104b67efa08f40a73326ec03f, type: 3}
       propertyPath: spawnTimer
