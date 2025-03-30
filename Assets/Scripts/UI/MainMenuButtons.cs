@@ -19,5 +19,11 @@ public class MainMenuButtons : MonoBehaviour
     {
         controlsPanel.SetActive(toggle);
         AudioManager.PlaySound(Audios.MenuClick);
+    }
+
+    public void StartTutorial()
+    {
+        GameManager.NextTutorial();
+        AudioManager.PlaySound(Audios.MenuClick);
     } 
 }
