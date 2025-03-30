@@ -15,6 +15,7 @@ public class BarrelSpawner : MonoBehaviour
   [SerializeField] private bool randomSpawnTime;
   [SerializeField] private float lowerRandomLimit;
   [SerializeField] private float upperRandomLimit;
+  [SerializeField] private float barrelSize = 0f;
   
   public delegate void OnBarrelDelegate(ThrowDirection direction, float timeUntil);
   public event OnBarrelDelegate OnBarrel;
@@ -36,6 +37,9 @@ public class BarrelSpawner : MonoBehaviour
         yield return new WaitForSeconds(randomWaitTime);
       }
       
+      if (barrelSize > 0) {
+        barrel.transform.localScale = new Vector3(barrelSize, barrelSize, barrelSize);
+      }
       Barrel newBarrel = Instantiate(barrel, barrelSpawnRef.position, Quaternion.identity);
       Rigidbody2D newBarrelRb = newBarrel.gameObject.GetComponent<Rigidbody2D>();
       if (throwDirection == ThrowDirection.Right)

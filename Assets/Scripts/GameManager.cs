@@ -309,6 +309,7 @@ public class GameManager : MonoBehaviour
     private void GetPlayerController()
     {
         var player = GameObject.FindGameObjectWithTag("Player");
+        Debug.Log(player);
         if (!player) return;
         
         _hud.gameObject.SetActive(!isInTutorial);
@@ -438,7 +439,7 @@ public class GameManager : MonoBehaviour
 
     public void TogglePause()
     {
-        if (currentController && !currentController.IsDead)
+        if ((currentController && !currentController.IsDead) || isInTutorial)
         {
             AudioManager.PlaySound(Audios.MenuClick);
             isGamePaused = !isGamePaused;
@@ -464,10 +465,16 @@ public class GameManager : MonoBehaviour
         CurrentScore = 0;
         AudioManager.PlaySound(Audios.MenuClick);
         StartCoroutine(LoadLevel());
+        if (isInTutorial) {
+          RestartTutorialLevel();
+        } else {
+          StartCoroutine(LoadLevel());
+        }
     }
 
     public void ReturnToMainMenu()
     {
+        isInTutorial = false;
         isGamePaused = false;
         _pauseMenu.SetActive(false);
         AudioManager.PlaySound(Audios.MenuClick);
