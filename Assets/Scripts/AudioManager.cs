@@ -47,14 +47,16 @@ public class AudioManager : MonoBehaviour
         public bool Loop { get; }
         public AudioSource CurrentSource { get; private set; }
         public bool IsPaused { get; private set; }
-        
-        public AudioClipRecord(string name, AudioClip clip = null, float volume = 1f, float pitch = 1f, bool loop = false)
+        private bool NeverRetain { get; set; }
+
+        public AudioClipRecord(string name, AudioClip clip = null, float volume = 1f, float pitch = 1f, bool loop = false, bool neverRetain = false)
         {
             Name = name;
             Clip = clip;
             Volume = volume;
             Pitch = pitch;
             Loop = loop;
+            NeverRetain = neverRetain;
         }
 
         public void PlayClip(float delay = 0f, float? volume = null, float? pitch = null)
@@ -157,7 +159,7 @@ public class AudioManager : MonoBehaviour
         {
             SetVolume(1f);
             SetPitch(1f);
-            if (!retainPlayback)
+            if (!retainPlayback || NeverRetain)
                 StopClip();
             IsPaused = false;
         }
@@ -172,7 +174,7 @@ public class AudioManager : MonoBehaviour
         new(Audios.Destroy),
         new(Audios.Die),
         new(Audios.GrabCollectible),
-        new(Audios.Hammer, loop: true),
+        new(Audios.Hammer, loop: true, neverRetain: true),
         new(Audios.Jump),
         new(Audios.JumpOverBarrel),
         new(Audios.Ladder),
@@ -265,6 +267,38 @@ public class AudioManager : MonoBehaviour
 
     public static void ChangeBackgroundMusic(string sceneName = null)
     {
+        var (nextSound, delay) = GetBackgroundMusic(sceneName);
+
+        if (!nextSound.Equals(string.Empty))
+        {
+            if (nextSound.Equals(Audios.VictoryMusic)) 
+                PlaySound(Audios.Win);
+            PlaySound(nextSound, delay);
+        }
+
+        foreach (var clip in AudioClips.Select(kvp => kvp.Value).Where(clip => !clip.Name.Equals(nextSound) && clip.Loop))
+        {
+            clip.StopClip();
+        }
+    }
+
+    public static void PlayBackgroundMusic(string sceneName)
+    {
+        var (nextSound, delay) = GetBackgroundMusic(sceneName);
+
+        if (nextSound.Equals(string.Empty)) return;
+
+        var soundExists = AudioClips.TryGetValue(nextSound, out var clip);
+        
+        if (!soundExists || (clip.CurrentSource?.isPlaying ?? false)) return;
+        
+        if (nextSound.Equals(Audios.VictoryMusic))
+            PlaySound(Audios.Win);
+        PlaySound(nextSound, delay);
+    }
+
+    private static Tuple<string,float> GetBackgroundMusic(String sceneName = null)
+    {
         sceneName ??= SceneManager.GetActiveScene().name;
 
         var nextSound = string.Empty;
@@ -278,7 +312,6 @@ public class AudioManager : MonoBehaviour
                 var foundClip = AudioClips.TryGetValue("win", out var winGameClip);
                 if (foundClip)
                 {
-                    PlaySound("win");
                     nextSound = Audios.VictoryMusic;
                     delay = winGameClip.Clip.length + 1.5f;
                 }
@@ -292,15 +325,7 @@ public class AudioManager : MonoBehaviour
                 break;
         }
 
-        if (!nextSound.Equals(String.Empty))
-        {
-            PlaySound(nextSound, delay);
-        }
-
-        foreach (var clip in AudioClips.Select(kvp => kvp.Value).Where(clip => !clip.Name.Equals(nextSound) && clip.Loop))
-        {
-            clip.StopClip();
-        }
+        return new Tuple<string,float>(nextSound, delay);
     }
 
     public static void PauseBackgroundMusic()

@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour
     public const string LevelPrefix = "LEVEL ";
     public const string TutorialPrefix = "Tutorial_";
     private const int NumLevels = 4;
+    private const int NumTutorials = 7;
     private const int StartingLives = 3;
 
     private static GameObject _scoreTextPopup;
@@ -76,7 +77,7 @@ public class GameManager : MonoBehaviour
     private static float timeSinceLastFrameRateCheck = 0f;
 
     // Tutorial variables
-    private bool isInTutorial;
+    private static bool isInTutorial;
     private static int CurrentTutorialLevel { get; set; }
 
     private GameObject player;
@@ -288,6 +289,7 @@ public class GameManager : MonoBehaviour
         var isContinuingTutorial = currentLower.Contains(TutorialPrefix.ToLowerInvariant()) && isTutorial;
         var isLevel = lower.Contains(LevelPrefix.ToLowerInvariant());
 
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
         AudioManager.ResetSounds(isTutorial);
         isGamePaused = false;
         currentController = null;
@@ -308,6 +310,10 @@ public class GameManager : MonoBehaviour
         if (!isContinuingTutorial)
         {
             AudioManager.ChangeBackgroundMusic(sceneName);   
+        }
+        else
+        {
+            AudioManager.PlayBackgroundMusic(sceneName);
         }
         
         if (isTutorial || isLevel) 
@@ -388,12 +394,20 @@ public class GameManager : MonoBehaviour
         {
             beastSprite = candidates[0];
         }
-        if (CurrentLevel != NumLevels && beastSprite)
+
+        if (beastSprite)
         {
-            AudioManager.PlaySound(Audios.MovingLevel);
-            yield return beastSprite.StartEndAnimation();
+            if (CurrentLevel != NumLevels)
+            {
+                AudioManager.PlaySound(Audios.MovingLevel);
+                yield return beastSprite.StartEndAnimation();
+            }
+            else
+            {
+                yield return beastSprite.StartFinalAnimation();
+            }
         }
-       
+
         yield return AdvanceLevel();
         
         isCompletingLevel = false;
@@ -452,7 +466,7 @@ public class GameManager : MonoBehaviour
 
     public void TogglePause()
     {
-        if (currentController && !currentController.IsDead)
+        if (currentController && !currentController.IsDead && !isCompletingLevel)
         {
             AudioManager.PlaySound(Audios.MenuClick);
             isGamePaused = !isGamePaused;
@@ -473,15 +487,20 @@ public class GameManager : MonoBehaviour
         CurrentScore = 0;
         AudioManager.PlaySound(Audios.MenuClick);
         if (isInTutorial) {
-          RestartTutorialLevel();
-        } else {
-          StartCoroutine(LoadLevel());
+            Instance.StartCoroutine(Instance.LoadScene($"{TutorialPrefix}{CurrentTutorialLevel}"));
+        } else { 
+            StartCoroutine(LoadLevel());
         }
     }
 
     public void ReturnToMainMenu()
     {
-        isInTutorial = false;
+        if (isInTutorial)
+        {
+            isInTutorial = false;
+            CurrentTutorialLevel = 0;
+        }
+
         isGamePaused = false;
         _pauseMenu.SetActive(false);
         AudioManager.PlaySound(Audios.MenuClick);
@@ -497,26 +516,26 @@ public class GameManager : MonoBehaviour
 
     public static void NextTutorial()
     {
-        Instance.isInTutorial = true;
+        isInTutorial = true;
         CurrentTutorialLevel++;
+        if (CurrentTutorialLevel > NumTutorials)
+        {
+            Instance.StartCoroutine(EndTutorial());
+            return;
+        }
         Instance.StartCoroutine(Instance.LoadScene($"{TutorialPrefix}{CurrentTutorialLevel}"));
     }
-
-    public static void RestartTutorialLevel()
+    
+    private static IEnumerator EndTutorial()
     {
-      Instance.StartCoroutine(Instance.LoadScene($"{TutorialPrefix}{CurrentTutorialLevel}"));
-    }
-
-    public static IEnumerator EndTutorial()
-    {
-      TextMeshProUGUI text = GameObject.Find("EndTutorial").GetComponent<TextMeshProUGUI>();
-      text.text = "Congratulations, you've completed the tutorial!";
-      Time.timeScale = 0;
-      yield return new WaitForSecondsRealtime(3);
-      Time.timeScale = 1;
-      Instance.isInTutorial = false;
-      CurrentTutorialLevel = 0;
-      Instance.StartCoroutine(Instance.LoadScene(MainMenu));
+        isInTutorial = false;
+        CurrentTutorialLevel = 0;
+        
+        Time.timeScale = 0;
+        yield return new WaitForSecondsRealtime(3);
+        Time.timeScale = 1;
+        
+        Instance.StartCoroutine(Instance.LoadScene(MainMenu));
     }
 
     public static float GetScaledFrameCount(int frames)

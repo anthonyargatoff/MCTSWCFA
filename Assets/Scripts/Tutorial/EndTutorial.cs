@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 public class EndTutorial : MonoBehaviour
@@ -6,7 +7,9 @@ public class EndTutorial : MonoBehaviour
   {
     if (collision.CompareTag("Player"))
     {
-      StartCoroutine(GameManager.EndTutorial());
+      var text = GameObject.Find("EndTutorial").GetComponent<TextMeshProUGUI>();
+      text?.SetText("Congratulations, you've completed the tutorial!");
+      GameManager.NextTutorial();
     }
   }
 }
