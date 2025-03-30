@@ -2617,7 +2617,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8797346182704159350, guid: bc324b4104b67efa08f40a73326ec03f, type: 3}
       propertyPath: barrelSize
-      value: 0
+      value: 0.6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
