@@ -17,7 +17,7 @@ public class FallingBarrelSpriteController: SpriteControllerMonoBehaviour
     private static readonly Dictionary<string,Sprite> SpriteDictionary = new();
 
     private int barrelFrame;
-    private const int FramesBetweenBarrelUpdate = 90;
+    private const int FramesBetweenBarrelUpdate = 15;
     private int framesSinceLastBarrelUpdate = 0;
     
     private FallingBarrel fallingBarrel;
@@ -37,7 +37,7 @@ public class FallingBarrelSpriteController: SpriteControllerMonoBehaviour
     
     private void FixedUpdate()
     {
-        if (framesSinceLastBarrelUpdate > FramesBetweenBarrelUpdate)
+        if (framesSinceLastBarrelUpdate > GameManager.GetScaledFrameCount(FramesBetweenBarrelUpdate))
         {
             barrelFrame++;
             if (barrelFrame > 2) barrelFrame = 0;

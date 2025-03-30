@@ -1,10 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using DG.Tweening;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -17,15 +18,19 @@ public class ScoreEvent
 
 public class GameManager : MonoBehaviour
 {
+    private static bool _debugMode;
     public static GameManager Instance { get; private set; }
+
+    private const int TargetFrameRate = 60;
+    private static float _frameRatio = 1.0f;
     
-    private const string DebugScene = "SampleScene";
+    public const string DebugScene = "SampleScene";
     private static bool _initialized;
     
-    private const string MainMenu = "MainMenu";
-    private const string VictoryScene = "VictoryScene";
-    private const string LevelPrefix = "LEVEL ";
-    private const int NumLevels = 3;
+    public const string MainMenu = "MainMenu";
+    public const string VictoryScene = "VictoryScene";
+    public const string LevelPrefix = "LEVEL ";
+    private const int NumLevels = 4;
     private const int StartingLives = 3;
 
     private static GameObject _scoreTextPopup;
@@ -62,14 +67,24 @@ public class GameManager : MonoBehaviour
     private static TextMeshProUGUI _livesText;
     private static TextMeshProUGUI _scoreText;
     private static TextMeshProUGUI _timerText;
+    private static TextMeshProUGUI _fpsText;
     private static GameObject _pauseMenu;
-    private bool isInTutorial = false;
+    private static GameObject _debugMenu;
+
+    private static int frameCount = 0;
+    private static float timeSinceLastFrameRateCheck = 0f;
+
+    private GameObject player;
 
     // Tutorial variables
+    private bool isInTutorial = false;
     public static int CurrentTutorialLevel { get; private set; }
     
     private void Awake()
     {
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = TargetFrameRate;
+        
         Instance = this;
         _scoreTextPopup = Resources.Load<GameObject>("Prefabs/ScoreTextPopup");
         _mainUI = GameObject.Find("MainUICanvas").GetComponent<Canvas>();
@@ -77,24 +92,85 @@ public class GameManager : MonoBehaviour
         _loadingScreen = _mainUI.transform.Find("LoadingScreen").GetComponent<LoadingScreen>();
         _gameOverScreen = _mainUI.transform.Find("GameOverScreen").GetComponent<GameOverScreen>();
         _pauseMenu = _mainUI.transform.Find("PauseMenu").gameObject;
+        _debugMenu = _mainUI.transform.Find("DebugMenu").gameObject;
+        _fpsText = _mainUI.transform.Find("FPSText").GetComponent<TextMeshProUGUI>();
+
+        if (_debugMenu)
+        {
+            var container = _debugMenu.transform.Find("DebugPanel/LayoutContainer");
+            var button = container?.Find("ButtonTemplate");
+            if (container && button)
+            {
+                var sceneNames = new List<string>
+                {
+                    MainMenu,
+                    VictoryScene,
+                };
+                for (var i = 1; i <= NumLevels; i++)
+                {
+                    sceneNames.Add($"{LevelPrefix}{i}");
+                }
+
+                foreach (var sceneName in sceneNames)
+                {
+                    var b = Instantiate(button.gameObject, container);
+                    var but = b.GetComponent<Button>();
+                    but.onClick.AddListener(() =>
+                    {
+                        if (!_debugMode) return;
+                        var isLevel = sceneName.ToLowerInvariant().Contains(LevelPrefix.ToLowerInvariant());
+                        if (isLevel)
+                        {
+                            var valid = int.TryParse(sceneName[LevelPrefix.Length..], out var levelIndex);
+                            if (valid) CurrentLevel = levelIndex;
+                            else return;
+                            StartCoroutine(LoadLevel());
+                        }
+                        else
+                        {
+                            StartCoroutine(LoadScene(sceneName));   
+                        }
+                        
+                        _debugMenu.SetActive(false);
+                    });
+                    var text = b.GetComponentInChildren<TextMeshProUGUI>();
+                    text.SetText(sceneName);  
+                    b.name = sceneName;
+                    b.SetActive(true);
+                }
+            }
+        }
         
         _hud = _mainUI.transform.Find("HUD");
         var hudContainer = _hud.Find("Container");
         _livesText = hudContainer.Find("Lives")?.transform.Find("LivesText").GetComponent<TextMeshProUGUI>();
         _scoreText = hudContainer.Find("ScoreText")?.GetComponent<TextMeshProUGUI>();
         _timerText = hudContainer.Find("TimerText")?.GetComponent<TextMeshProUGUI>();
+        
         ResetGame(true);
     }
     
     private void Update()
     {
+        if (Application.isFocused)
+        {
+            ++frameCount;
+            timeSinceLastFrameRateCheck += Time.unscaledDeltaTime;
+            if (timeSinceLastFrameRateCheck >= 1f)
+            {
+                if (_debugMode)
+                {
+                    _fpsText?.SetText($"FPS: {frameCount / timeSinceLastFrameRateCheck:F1}");
+                }
+
+                _frameRatio = frameCount / timeSinceLastFrameRateCheck / TargetFrameRate;
+                timeSinceLastFrameRateCheck = 0f;
+                frameCount = 0;
+            }
+        }
+
         if (currentController && !currentController.IsDead && !isCompletingLevel && !isStartingLevel)
         {
-            if (!currentRewindController)
-            {
-                currentRewindController = currentController.GetComponent<PlayerRewindController>();
-            }
-
             if (currentRewindController && !currentRewindController.IsRewinding || !currentRewindController)
             {
                 Time.timeScale = isGamePaused ? 0f : 1f;
@@ -108,6 +184,18 @@ public class GameManager : MonoBehaviour
         {
             TogglePause();
         }
+
+        if (Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.D))
+        {
+            _debugMode = !_debugMode;
+            _debugMenu.SetActive(false);
+            _fpsText?.gameObject.SetActive(_debugMode);
+        }
+
+        if (_debugMode && Input.GetKeyDown(KeyCode.Tab))
+        {
+            _debugMenu.SetActive(!_debugMenu.activeSelf);
+        } 
     }
 
     private float lastTextUpdate = 0f;
@@ -162,11 +250,10 @@ public class GameManager : MonoBehaviour
         TotalScore = 0;
         CurrentLevel = 1;
         CurrentLives = StartingLives;
-
         Instance.StartCoroutine(Instance.LoadLevel());
     }
 
-    private static void AdvanceLevel()
+    private static IEnumerator AdvanceLevel()
     {
         TotalScore += CurrentScore;
         CurrentScore = TotalScore;
@@ -174,11 +261,11 @@ public class GameManager : MonoBehaviour
         
         if (CurrentLevel > NumLevels)
         {
-            Instance.StartCoroutine(Instance.LoadScene(VictoryScene));
-            return;
+            yield return Instance.LoadScene(VictoryScene);
+            yield break;
         }
-
-        Instance.StartCoroutine(Instance.LoadLevel());
+        
+        yield return Instance.LoadLevel();        
     }
 
     private IEnumerator LoadLevel()
@@ -191,6 +278,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator LoadScene(string sceneName, bool showLoadingScreen = false, bool respawn = false)
     {
+        AudioManager.ResetSounds();
         isGamePaused = false;
         currentController = null;
         LevelTimer = ClearTimer;
@@ -207,6 +295,7 @@ public class GameManager : MonoBehaviour
         }
         StartCoroutine(FadeScreen());
         
+        AudioManager.ChangeBackgroundMusic(sceneName);
         if (sceneName.ToLowerInvariant().Contains(LevelPrefix.ToLowerInvariant())) 
             GetPlayerController();
         
@@ -221,10 +310,12 @@ public class GameManager : MonoBehaviour
         
         _hud.gameObject.SetActive(true);
         currentController = player.GetComponent<PlayerController>();
+        currentRewindController = player.GetComponent<PlayerRewindController>();
         currentController.OnDeath += () =>
         {
             StartCoroutine(OnPlayerDeath());
         };
+        AudioManager.LinkPlayerController(currentController,currentRewindController);
     }
 
     private IEnumerator OnPlayerDeath()
@@ -240,6 +331,7 @@ public class GameManager : MonoBehaviour
         
         if (CurrentLives == 0)
         {
+            AudioManager.PlaySound(Audios.Lose);
             yield return _gameOverScreen.ShowGameOverScreen();
             ResetGame();
         }
@@ -276,25 +368,27 @@ public class GameManager : MonoBehaviour
         {
             beastSprite = candidates[0];
         }
-
         if (CurrentLevel != NumLevels && beastSprite)
         {
+            AudioManager.PlaySound(Audios.MovingLevel);
             yield return beastSprite.StartEndAnimation();
         }
-        
-        AdvanceLevel();
+       
+        yield return AdvanceLevel();
         
         isCompletingLevel = false;
     }
 
     private static IEnumerator FadeScreen(bool fadeIn = true, float delay = 1f)
     {
+        _fadePanel.gameObject.SetActive(true);
         var opaque = new Color(0, 0, 0, 1);
         var transparent = new Color(0, 0, 0, 0);
         
         _fadePanel.color = fadeIn ? opaque : transparent;
         _fadePanel.DOColor(fadeIn ? transparent : opaque, delay).SetEase(Ease.Linear).SetUpdate(true);
         yield return new WaitForSecondsRealtime(delay);
+        _fadePanel.gameObject.SetActive(false);
     }
     
     public static void IncreaseScore(int amount, Transform source = null)
@@ -336,7 +430,9 @@ public class GameManager : MonoBehaviour
     {
         if ((currentController && !currentController.IsDead) || isInTutorial)
         {
+            AudioManager.PlaySound(Audios.MenuClick);
             isGamePaused = !isGamePaused;
+            AudioManager.OnPauseToggle(isGamePaused);
             _pauseMenu.SetActive(isGamePaused);
             if (isGamePaused)
             {
@@ -351,6 +447,7 @@ public class GameManager : MonoBehaviour
         isGamePaused = false;
         _pauseMenu.SetActive(false);
         CurrentScore = 0;
+        AudioManager.PlaySound(Audios.MenuClick);
         if (isInTutorial) {
           RestartTutorialLevel();
         } else {
@@ -363,6 +460,7 @@ public class GameManager : MonoBehaviour
         isInTutorial = false;
         isGamePaused = false;
         _pauseMenu.SetActive(false);
+        AudioManager.PlaySound(Audios.MenuClick);
         ResetGame();
     }
 
@@ -394,5 +492,10 @@ public class GameManager : MonoBehaviour
       Time.timeScale = 1;
       Instance.isInTutorial = false;
       Instance.StartCoroutine(Instance.LoadScene(MainMenu));
+    }
+
+    public static float GetScaledFrameCount(int frames)
+    {
+        return frames * _frameRatio;
     }
 }

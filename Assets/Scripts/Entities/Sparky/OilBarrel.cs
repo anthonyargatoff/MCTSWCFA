@@ -32,7 +32,7 @@ public class OilBarrel: SpriteControllerMonoBehaviour
     private const int fireFrameMax = 2;
     private int fireFrame;
 
-    private const int framesBetweenUpdate = 60;
+    private const int framesBetweenUpdate = 10;
     private int framesSinceLastUpdate;
 
     private bool readyToSpawn;
@@ -54,7 +54,7 @@ public class OilBarrel: SpriteControllerMonoBehaviour
     private void Update()
     {
         if (Time.deltaTime > 0) {
-            if (framesSinceLastUpdate > framesBetweenUpdate)
+            if (framesSinceLastUpdate > GameManager.GetScaledFrameCount(framesBetweenUpdate))
             {
                 fireFrame++;
                 if (fireFrame > fireFrameMax) fireFrame = 0;

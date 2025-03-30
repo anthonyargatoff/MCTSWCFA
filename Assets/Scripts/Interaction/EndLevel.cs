@@ -11,6 +11,7 @@ public class EndLevel : MonoBehaviour
             collected = true;
             GameManager.CompleteLevel();
             Destroy(gameObject);
+            
         }
     }
 }

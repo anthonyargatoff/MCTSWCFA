@@ -43,10 +43,10 @@ public class PrincessSpriteController: SpriteControllerMonoBehaviour
     
     private bool kissAnimationPlaying;
     
-    private const int FramesBetweenUpdate = 180;
+    private const int FramesBetweenUpdate = 20;
     private int framesSinceLastUpdate = 0;
     
-    private const int FramesBetweenWalkUpdate = 30;
+    private const int FramesBetweenWalkUpdate = 10;
     private int framesSinceLastWalkUpdate = 0;
     private bool walkFrame;
 
@@ -58,7 +58,7 @@ public class PrincessSpriteController: SpriteControllerMonoBehaviour
         [3] = "yell2",
     };
     
-    private const int FramesBetweenYellCycle = 240;
+    private const int FramesBetweenYellCycle = 120;
     private int framesSinceLastYellCycle;
     private bool inYellCycle;
     private const int YellMax = 3;
@@ -101,7 +101,7 @@ public class PrincessSpriteController: SpriteControllerMonoBehaviour
             yellFrame = 0;
         }
         
-        if (framesSinceLastUpdate > FramesBetweenUpdate)
+        if (framesSinceLastUpdate > GameManager.GetScaledFrameCount(FramesBetweenUpdate))
         {
             gleeFrame = !gleeFrame;
             if (inYellCycle)
@@ -117,14 +117,14 @@ public class PrincessSpriteController: SpriteControllerMonoBehaviour
         }
         framesSinceLastUpdate++;
 
-        if (framesSinceLastWalkUpdate > FramesBetweenWalkUpdate)
+        if (framesSinceLastWalkUpdate > GameManager.GetScaledFrameCount(FramesBetweenWalkUpdate))
         {
             walkFrame = !walkFrame;
             framesSinceLastWalkUpdate = 0;
         }
         framesSinceLastWalkUpdate++;
 
-        if (framesSinceLastYellCycle > FramesBetweenYellCycle)
+        if (framesSinceLastYellCycle > GameManager.GetScaledFrameCount(FramesBetweenYellCycle))
         {
             inYellCycle = true;
             framesSinceLastYellCycle = 0;
