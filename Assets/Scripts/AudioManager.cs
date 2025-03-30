@@ -328,24 +328,12 @@ public class AudioManager : MonoBehaviour
 
     public static void PlayHammerMusic()
     {
-        var validMove = AudioClips.TryGetValue(Audios.Move, out var moveClip);
-        var validLadder = AudioClips.TryGetValue(Audios.Ladder, out var ladderClip);
-        if (validMove)
-            moveClip.SetVolume(0f);
-        if (validLadder)
-            ladderClip.SetVolume(0f);
         PauseBackgroundMusic();
         PlaySound(Audios.Hammer);
     }
 
     public static void StopHammerMusic()
     {
-        var validMove = AudioClips.TryGetValue(Audios.Move, out var moveClip);
-        var validLadder = AudioClips.TryGetValue(Audios.Ladder, out var ladderClip);
-        if (validMove)
-            moveClip.SetVolume(1f);
-        if (validLadder)
-            ladderClip.SetVolume(1f);
         StopSound(Audios.Hammer);
         ResumeBackgroundMusic();
     }
