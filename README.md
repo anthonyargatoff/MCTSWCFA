@@ -21,6 +21,12 @@ Retro-Jam final project submission for the COSC 416 Unity game development cours
     - https://github.com/anthonyargatoff/MCTSWCFA/pull/35  
     - https://github.com/anthonyargatoff/MCTSWCFA/pull/40
 - Alex Argatoff
+-  - Contributions:
+    - Player movement, barrel going down ladder interactions, audio and sfx. 
+    - Issues: #1, #9, #17
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/20
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/22
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/26
 - Anthony Argatoff
 - Prateek Balani
 
