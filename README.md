@@ -29,7 +29,11 @@ Retro-Jam final project submission for the COSC 416 Unity game development cours
     - https://github.com/anthonyargatoff/MCTSWCFA/pull/26
     - https://github.com/anthonyargatoff/MCTSWCFA/pull/28
 - Anthony Argatoff
-- Prateek Balani
+- Prateek Balani: 
+  - Contribution:
+    - Level design: which included disconnected platforms, Up and down platforms, beast throws barrels similar to Lvl 1 and the whole level is ladder dependant.
+    - Few debugs
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/39
 
 ## Gameplay Footage
 * Gameplay:
