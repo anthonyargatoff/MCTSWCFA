@@ -1,5 +1,7 @@
 # Man Climbs Tower, Saves Woman that is being held Captive by Feral Animal (MCTSWCFA)
-Retro-Jam final project submission for the COSC 416 Unity game development course
+Retro-Jam final project submission for the COSC 416 Unity game development course.
+
+* [Play Here!](https://bhunt02.itch.io/mctswcfa)
 
 ## Details
 * Based on: Donkey Kong (1981)
