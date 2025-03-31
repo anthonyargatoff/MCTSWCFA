@@ -29,6 +29,13 @@ Retro-Jam final project submission for the COSC 416 Unity game development cours
     - https://github.com/anthonyargatoff/MCTSWCFA/pull/26
     - https://github.com/anthonyargatoff/MCTSWCFA/pull/28
 - Anthony Argatoff
+  - Contributions:
+    - Level design for 1, 2, 4, and tutorial. Vertical and horizontal barrels. Rotating platforms, up-down platforms.
+    - Issues: #3, #15, #36
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/14
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/24
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/37
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/31
 - Prateek Balani: 
   - Contribution:
     - Level design: which included disconnected platforms, Up and down platforms, beast throws barrels similar to Lvl 1 and the whole level is ladder dependant.
