@@ -33,6 +33,7 @@ Retro-Jam final project submission for the COSC 416 Unity game development cours
   - Contribution:
     - Level design: which included disconnected platforms, Up and down platforms, beast throws barrels similar to Lvl 1 and the whole level is ladder dependant.
     - Few debugs
+    - Issue: #38
     - https://github.com/anthonyargatoff/MCTSWCFA/pull/39
 
 ## Gameplay Footage
