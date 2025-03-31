@@ -12,9 +12,17 @@ Retro-Jam final project submission for the COSC 416 Unity game development cours
 - Prateek Balani
 
 ## Gameplay Footage
-* Gameplay: https://youtu.be/amnsUqdgFEs
-* Tutorial: https://youtu.be/ybdsnfmNqsc
-* Bonus (Death & Game Over): https://youtu.be/b0v3ZtPMr-k
+* Gameplay:
+
+[![Watch the video](https://img.youtube.com/vi/amnsUqdgFEs/0.jpg)](https://youtu.be/amnsUqdgFEs)
+
+* Tutorial:
+  
+[![Watch the video](https://img.youtube.com/vi/ybdsnfmNqsc/0.jpg)](https://youtu.be/ybdsnfmNqsc)
+
+* Bonus (Death & Game Over):
+
+[![Watch the video](https://img.youtube.com/vi/b0v3ZtPMr-k/0.jpg)](https://youtu.be/b0v3ZtPMr-k)
 
 ## Resources
 
