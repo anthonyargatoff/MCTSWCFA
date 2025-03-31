@@ -75,7 +75,7 @@ public class AudioManager : MonoBehaviour
         private IEnumerator PlayAndDispose(float delay, float? volume = null, float? pitch = null)
         {
             var src = GetOrAddSource(volume, pitch);
-            Instance.StartCoroutine(Play(src, delay));
+            yield return Play(src, delay);
 
             while (src.isPlaying)
             {
