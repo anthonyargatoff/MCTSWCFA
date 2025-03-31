@@ -27,6 +27,7 @@ Retro-Jam final project submission for the COSC 416 Unity game development cours
     - https://github.com/anthonyargatoff/MCTSWCFA/pull/20
     - https://github.com/anthonyargatoff/MCTSWCFA/pull/22
     - https://github.com/anthonyargatoff/MCTSWCFA/pull/26
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/28
 - Anthony Argatoff
 - Prateek Balani
 
