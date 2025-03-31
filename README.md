@@ -11,6 +11,15 @@ Retro-Jam final project submission for the COSC 416 Unity game development cours
 
 ## Team Members
 - Bridgette Hunt
+  - Contributions:
+    - Level design (modification & finalization), UI design (title screen, victory screen, game over screen, loading screen), sprite design (player, enemies, princess, items), sprite/animation logic, cutscenes, core game logic & loop, time rewind mechanic, hammer powerup, collectible items, points system, lives system, game over system, game progression, refactoring
+    - #2, #6, #8, #9, #10, #11, #12, #18, #19, #27, #33
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/21
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/23
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/25
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/34
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/35  
+    - https://github.com/anthonyargatoff/MCTSWCFA/pull/40
 - Alex Argatoff
 - Anthony Argatoff
 - Prateek Balani
