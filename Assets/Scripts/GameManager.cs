@@ -30,7 +30,9 @@ public class GameManager : MonoBehaviour
     public const string MainMenu = "MainMenu";
     public const string VictoryScene = "VictoryScene";
     public const string LevelPrefix = "LEVEL ";
+    public const string TutorialPrefix = "Tutorial_";
     private const int NumLevels = 4;
+    private const int NumTutorials = 7;
     private const int StartingLives = 3;
 
     private static GameObject _scoreTextPopup;
@@ -74,11 +76,11 @@ public class GameManager : MonoBehaviour
     private static int frameCount = 0;
     private static float timeSinceLastFrameRateCheck = 0f;
 
-    private GameObject player;
-
     // Tutorial variables
-    private bool isInTutorial = false;
-    public static int CurrentTutorialLevel { get; private set; }
+    private static bool isInTutorial;
+    private static int CurrentTutorialLevel { get; set; }
+
+    private GameObject player;
     
     private void Awake()
     {
@@ -247,9 +249,12 @@ public class GameManager : MonoBehaviour
     public static void StartGame()
     {
         Physics2D.queriesHitTriggers = true;
+        
         TotalScore = 0;
+        CurrentScore = 0;
         CurrentLevel = 1;
         CurrentLives = StartingLives;
+        
         Instance.StartCoroutine(Instance.LoadLevel());
     }
 
@@ -278,15 +283,22 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator LoadScene(string sceneName, bool showLoadingScreen = false, bool respawn = false)
     {
-        AudioManager.ResetSounds();
+        var currentLower = SceneManager.GetActiveScene().name.ToLowerInvariant();
+        var lower = sceneName.ToLowerInvariant();
+        var isTutorial = lower.Contains(TutorialPrefix.ToLowerInvariant());
+        var isContinuingTutorial = currentLower.Contains(TutorialPrefix.ToLowerInvariant()) && isTutorial;
+        var isLevel = lower.Contains(LevelPrefix.ToLowerInvariant());
+
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+        AudioManager.ResetSounds(isTutorial);
         isGamePaused = false;
         currentController = null;
         LevelTimer = ClearTimer;
         Time.timeScale = 0;
         
-        SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
-
         _hud.gameObject.SetActive(false);
+        yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+        
         if (showLoadingScreen)
         {
             StartCoroutine(FadeScreen(false));
@@ -294,9 +306,17 @@ public class GameManager : MonoBehaviour
             yield return _loadingScreen.ShowLoadingScreen(respawn);
         }
         StartCoroutine(FadeScreen());
+
+        if (!isContinuingTutorial)
+        {
+            AudioManager.ChangeBackgroundMusic(sceneName);   
+        }
+        else
+        {
+            AudioManager.PlayBackgroundMusic(sceneName);
+        }
         
-        AudioManager.ChangeBackgroundMusic(sceneName);
-        if (sceneName.ToLowerInvariant().Contains(LevelPrefix.ToLowerInvariant())) 
+        if (isTutorial || isLevel) 
             GetPlayerController();
         
         Time.timeScale = 1;
@@ -305,10 +325,9 @@ public class GameManager : MonoBehaviour
     private void GetPlayerController()
     {
         var player = GameObject.FindGameObjectWithTag("Player");
-        Debug.Log(player);
         if (!player) return;
         
-        _hud.gameObject.SetActive(true);
+        _hud.gameObject.SetActive(!isInTutorial);
         currentController = player.GetComponent<PlayerController>();
         currentRewindController = player.GetComponent<PlayerRewindController>();
         currentController.OnDeath += () =>
@@ -320,6 +339,13 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator OnPlayerDeath()
     {
+        if (isInTutorial)
+        {
+            yield return new WaitForSecondsRealtime(2f);
+            yield return LoadScene(SceneManager.GetActiveScene().name);
+            yield break;
+        }
+        
         _hud.gameObject.SetActive(false);
         CurrentLives--;
         CurrentScore = 0;
@@ -368,12 +394,20 @@ public class GameManager : MonoBehaviour
         {
             beastSprite = candidates[0];
         }
-        if (CurrentLevel != NumLevels && beastSprite)
+
+        if (beastSprite)
         {
-            AudioManager.PlaySound(Audios.MovingLevel);
-            yield return beastSprite.StartEndAnimation();
+            if (CurrentLevel != NumLevels)
+            {
+                AudioManager.PlaySound(Audios.MovingLevel);
+                yield return beastSprite.StartEndAnimation();
+            }
+            else
+            {
+                yield return beastSprite.StartFinalAnimation();
+            }
         }
-       
+
         yield return AdvanceLevel();
         
         isCompletingLevel = false;
@@ -396,22 +430,28 @@ public class GameManager : MonoBehaviour
         CurrentScore += amount;
         if (!source) return;
         
-        if (!_scoreTextPopup)
-        {
-            _scoreTextPopup = Resources.Load<GameObject>("Prefabs/ScoreTextPopup");
-        }
-        if (!_scoreTextPopup) return;
-        
-        var popupObject = Instantiate(_scoreTextPopup, source.position, Quaternion.identity);
-        var popup = popupObject.GetComponent<ScoreTextPopup>();
-        Instance.StartCoroutine(popup.Popup(amount));
+        LaunchPopup(amount, source);
     }
 
     public static void IncreaseTimer(int amount, Transform source = null)
     {
         LevelTimer += amount;
         if (!source) return;
+           
+        var times = TimeToMinsAndSecs(amount);
+        LaunchPopup($"+{times.Item1:0}:{times.Item2:00}", source);
+    }
+
+    public static void IncreaseLives(int amount, Transform source = null)
+    {
+        CurrentLives += amount;
+        if (!source) return;
         
+        LaunchPopup($"{amount}-UP", source);
+    }
+
+    private static void LaunchPopup(object text, Transform source)
+    {
         if (!_scoreTextPopup)
         {
             _scoreTextPopup = Resources.Load<GameObject>("Prefabs/ScoreTextPopup");
@@ -420,15 +460,13 @@ public class GameManager : MonoBehaviour
         
         var popupObject = Instantiate(_scoreTextPopup, source.position, Quaternion.identity);
         var popup = popupObject.GetComponent<ScoreTextPopup>();
-        
-        var times = TimeToMinsAndSecs(amount);
 
-        Instance.StartCoroutine(popup.Popup($"+{times.Item1:0}:{times.Item2:00}"));
+        Instance.StartCoroutine(popup.Popup(text.ToString()));
     }
 
     public void TogglePause()
     {
-        if ((currentController && !currentController.IsDead) || isInTutorial)
+        if (currentController && !currentController.IsDead && !isCompletingLevel)
         {
             AudioManager.PlaySound(Audios.MenuClick);
             isGamePaused = !isGamePaused;
@@ -449,15 +487,20 @@ public class GameManager : MonoBehaviour
         CurrentScore = 0;
         AudioManager.PlaySound(Audios.MenuClick);
         if (isInTutorial) {
-          RestartTutorialLevel();
-        } else {
-          StartCoroutine(LoadLevel());
+            Instance.StartCoroutine(Instance.LoadScene($"{TutorialPrefix}{CurrentTutorialLevel}"));
+        } else { 
+            StartCoroutine(LoadLevel());
         }
     }
 
     public void ReturnToMainMenu()
     {
-        isInTutorial = false;
+        if (isInTutorial)
+        {
+            isInTutorial = false;
+            CurrentTutorialLevel = 0;
+        }
+
         isGamePaused = false;
         _pauseMenu.SetActive(false);
         AudioManager.PlaySound(Audios.MenuClick);
@@ -473,29 +516,30 @@ public class GameManager : MonoBehaviour
 
     public static void NextTutorial()
     {
-        Instance.isInTutorial = true;
+        isInTutorial = true;
         CurrentTutorialLevel++;
-        Instance.StartCoroutine(Instance.LoadScene("Tutorial_" + CurrentTutorialLevel));
+        if (CurrentTutorialLevel > NumTutorials)
+        {
+            Instance.StartCoroutine(EndTutorial());
+            return;
+        }
+        Instance.StartCoroutine(Instance.LoadScene($"{TutorialPrefix}{CurrentTutorialLevel}"));
     }
-
-    public static void RestartTutorialLevel()
+    
+    private static IEnumerator EndTutorial()
     {
-      Instance.StartCoroutine(Instance.LoadScene("Tutorial_" + CurrentTutorialLevel));
-    }
-
-    public static IEnumerator EndTutorial()
-    {
-      TextMeshProUGUI text = GameObject.Find("EndTutorial").GetComponent<TextMeshProUGUI>();
-      text.text = "Congratulations, you've completed the tutorial!";
-      Time.timeScale = 0;
-      yield return new WaitForSecondsRealtime(3);
-      Time.timeScale = 1;
-      Instance.isInTutorial = false;
-      Instance.StartCoroutine(Instance.LoadScene(MainMenu));
+        isInTutorial = false;
+        CurrentTutorialLevel = 0;
+        
+        Time.timeScale = 0;
+        yield return new WaitForSecondsRealtime(3);
+        Time.timeScale = 1;
+        
+        Instance.StartCoroutine(Instance.LoadScene(MainMenu));
     }
 
     public static float GetScaledFrameCount(int frames)
     {
         return frames * _frameRatio;
-    }
+    }   
 }

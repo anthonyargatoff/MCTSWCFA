@@ -5,9 +5,11 @@ using UnityEngine;
 public class EyeTracker: MonoBehaviour
 {
     private Transform player;
-
+    private Camera mainCamera;
+    
     private void Awake()
     {
+        mainCamera = Camera.main;
         player = GameObject.FindGameObjectWithTag("Player").transform;
     }
     
@@ -15,16 +17,16 @@ public class EyeTracker: MonoBehaviour
     {
         if (player)
         {
-            var angleBetween = Mathf.Atan2(player.transform.position.y - transform.position.y, player.transform.position.x - transform.position.x) * 180 / Mathf.PI;
+            var xDiff = (player.position.x - transform.position.x) / mainCamera.orthographicSize * 45f;
+            var yDiff = (player.position.y - transform.position.y) / mainCamera.orthographicSize * 45f;
             
-            var zAngle = Mathf.Max(angleBetween, -45f);
-            var xAngle = Mathf.Abs(angleBetween) - 90f;
-            if (xAngle < 0) xAngle = 0;
-            var yAngle = Mathf.Max(-angleBetween, 0f);
-            yAngle = Mathf.Clamp(yAngle, 45f, 90f);
-            transform.rotation = Quaternion.Euler(xAngle, yAngle, zAngle);
+            var yAngle = xDiff;
+            var zAngle = yDiff;
+            yAngle = Mathf.Clamp(-yAngle, -45f, 45f);
+            zAngle = Mathf.Clamp(zAngle, -45f, 45f);
+            transform.localRotation = Quaternion.Euler(0, yAngle, zAngle);
             return;
         }
-        transform.rotation = Quaternion.Euler(0, 90f, 0);
+        transform.rotation = Quaternion.identity;
     }
 }

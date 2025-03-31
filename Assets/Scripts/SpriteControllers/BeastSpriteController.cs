@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using UnityEngine;
-using Random = System.Random;
 
 public class BeastSpriteController: SpriteControllerMonoBehaviour
 {
@@ -19,6 +19,8 @@ public class BeastSpriteController: SpriteControllerMonoBehaviour
     };
     private static readonly Dictionary<string,Sprite> SpriteDictionary = new();
     private static readonly Dictionary<string,Sprite> OverlaySpriteDictionary = new();
+
+    [SerializeField] private GameObject floor;
     
     private SpriteRenderer overlaySprite;
     
@@ -89,7 +91,6 @@ public class BeastSpriteController: SpriteControllerMonoBehaviour
         if (barrelThrowsQueued > 0 || playingBarrelDropAnim) return;
         
         var nextSprite = "idle";
-        var ran = new Random();
         
         if (donkeyKong)
         {
@@ -210,5 +211,50 @@ public class BeastSpriteController: SpriteControllerMonoBehaviour
         var distanceFromTop = 10f - transform.position.y;
         transform.DOMoveY(transform.position.y + distanceFromTop + 1f, 0.5f).SetEase(Ease.OutCubic).SetLink(gameObject).SetUpdate(true);
         princessSprite.transform.DOMoveY(princessSprite.transform.position.y + distanceFromTop + 1f, 0.5f).SetEase(Ease.OutCubic).SetLink(princessSprite.gameObject).SetUpdate(true);
+    }
+
+    public IEnumerator StartFinalAnimation()
+    {
+        if (barrelSpawner)
+        {
+            barrelSpawner.enabled = false;
+        }
+        if (donkeyKong)
+        {
+            donkeyKong.enabled = false;
+        }
+        
+        var cam = Camera.main!;
+        var goalY = -cam.orthographicSize * cam.aspect;
+        var time = Mathf.Abs(transform.position.x) / 5f; 
+        transform.DOMoveX(0, time).SetEase(Ease.Linear).SetUpdate(true);
+        yield return new WaitForSecondsRealtime(time);
+        floor?.transform.DOMoveY(goalY,1f).SetEase(Ease.InCubic).SetUpdate(true);
+        yield return new WaitForSecondsRealtime(0.5f);
+        transform.DOLocalRotate(new Vector3(0f,0f,180f), 0.2f).SetUpdate(true);
+        yield return new WaitForSecondsRealtime(0.2f);
+        
+        var vel = 0f;
+        
+        var beenHit = new List<Collider2D>();
+        while (transform.position.y > goalY)
+        {
+            var hits = Physics2D.OverlapCircleAll(transform.position, 1.5f, LayerMask.GetMask("Ground")).ToList();
+            var validHits = hits.Where(h => !beenHit.Contains(h)).ToList();
+            foreach (var hit in validHits)
+            {
+                if (hit.transform.position.y > transform.position.y) continue;
+                hit.transform.DOMoveY(goalY, 1f).SetEase(Ease.InCubic).SetUpdate(true);
+                AudioManager.PlaySound(Audios.Destroy, volume: 0.25f);
+                vel += 0.09f;
+            }
+            beenHit.AddRange(validHits);
+            
+            vel += -9.8f * 0.01f;
+            transform.position += new Vector3(0,vel * 0.01f,0); 
+            yield return new WaitForSecondsRealtime(0.01f);
+        }
+        AudioManager.PlaySound(Audios.Destroy, volume: 1.0f, pitch: 0.95f);
+        yield return new WaitForSecondsRealtime(1.5f);
     }
 }

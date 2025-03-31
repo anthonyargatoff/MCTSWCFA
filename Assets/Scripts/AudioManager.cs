@@ -46,16 +46,17 @@ public class AudioManager : MonoBehaviour
         public float Pitch { get; private set; }
         public bool Loop { get; }
         public AudioSource CurrentSource { get; private set; }
-
         public bool IsPaused { get; private set; }
+        private bool NeverRetain { get; set; }
 
-        public AudioClipRecord(string name, AudioClip clip = null, float volume = 1f, float pitch = 1f, bool loop = false)
+        public AudioClipRecord(string name, AudioClip clip = null, float volume = 1f, float pitch = 1f, bool loop = false, bool neverRetain = false)
         {
             Name = name;
             Clip = clip;
             Volume = volume;
             Pitch = pitch;
             Loop = loop;
+            NeverRetain = neverRetain;
         }
 
         public void PlayClip(float delay = 0f, float? volume = null, float? pitch = null)
@@ -63,7 +64,7 @@ public class AudioManager : MonoBehaviour
             if (Loop)
             {
                 var src = GetOrAddSource(volume, pitch);
-                Play(src, delay); 
+                Instance.StartCoroutine(Play(src, delay)); 
             }
             else
             {
@@ -74,7 +75,7 @@ public class AudioManager : MonoBehaviour
         private IEnumerator PlayAndDispose(float delay, float? volume = null, float? pitch = null)
         {
             var src = GetOrAddSource(volume, pitch);
-            Play(src, delay);
+            yield return Play(src, delay);
 
             while (src.isPlaying)
             {
@@ -83,16 +84,14 @@ public class AudioManager : MonoBehaviour
             Destroy(src);
         }
 
-        private static void Play(AudioSource src, float delay = 0f)
+        private IEnumerator Play(AudioSource src, float delay = 0f)
         {
             if (delay > 0f)
             {
-                src.PlayScheduled(delay);   
+                yield return new WaitForSecondsRealtime(delay);
             }
-            else
-            {
-                src.Play();
-            }
+
+            src.Play();
         }
         
         public void StopClip()
@@ -154,11 +153,12 @@ public class AudioManager : MonoBehaviour
             }
         }
 
-        public void Reset()
+        public void Reset(bool retainPlayback)
         {
             SetVolume(1f);
             SetPitch(1f);
-            StopClip();
+            if (!retainPlayback || NeverRetain)
+                StopClip();
             IsPaused = false;
         }
     }
@@ -172,7 +172,7 @@ public class AudioManager : MonoBehaviour
         new(Audios.Destroy),
         new(Audios.Die),
         new(Audios.GrabCollectible),
-        new(Audios.Hammer, loop: true),
+        new(Audios.Hammer, loop: true, neverRetain: true),
         new(Audios.Jump),
         new(Audios.JumpOverBarrel),
         new(Audios.Ladder),
@@ -188,7 +188,7 @@ public class AudioManager : MonoBehaviour
         new(Audios.VictoryMusic, loop: true),
         new(Audios.Win)
     };
-
+    
     private void Awake()
     {
         if (Instance == null)
@@ -224,11 +224,11 @@ public class AudioManager : MonoBehaviour
         _initializedSound = true;
     }
 
-    public static void ResetSounds()
+    public static void ResetSounds(bool retainPlayback = false)
     {
         foreach (var clip in AudioClips.Select(kvp => kvp.Value))
         {
-            clip.Reset();
+            clip.Reset(retainPlayback);
         }
     }
 
@@ -265,6 +265,38 @@ public class AudioManager : MonoBehaviour
 
     public static void ChangeBackgroundMusic(string sceneName = null)
     {
+        var (nextSound, delay) = GetBackgroundMusic(sceneName);
+
+        if (!nextSound.Equals(string.Empty))
+        {
+            if (nextSound.Equals(Audios.VictoryMusic)) 
+                PlaySound(Audios.Win);
+            PlaySound(nextSound, delay);
+        }
+
+        foreach (var clip in AudioClips.Select(kvp => kvp.Value).Where(clip => !clip.Name.Equals(nextSound) && clip.Loop))
+        {
+            clip.StopClip();
+        }
+    }
+
+    public static void PlayBackgroundMusic(string sceneName)
+    {
+        var (nextSound, delay) = GetBackgroundMusic(sceneName);
+
+        if (nextSound.Equals(string.Empty)) return;
+
+        var soundExists = AudioClips.TryGetValue(nextSound, out var clip);
+        
+        if (!soundExists || (clip.CurrentSource?.isPlaying ?? false)) return;
+        
+        if (nextSound.Equals(Audios.VictoryMusic))
+            PlaySound(Audios.Win);
+        PlaySound(nextSound, delay);
+    }
+
+    private static Tuple<string,float> GetBackgroundMusic(String sceneName = null)
+    {
         sceneName ??= SceneManager.GetActiveScene().name;
 
         var nextSound = string.Empty;
@@ -278,28 +310,20 @@ public class AudioManager : MonoBehaviour
                 var foundClip = AudioClips.TryGetValue("win", out var winGameClip);
                 if (foundClip)
                 {
-                    PlaySound("win");
                     nextSound = Audios.VictoryMusic;
-                    delay = (float)AudioSettings.dspTime + winGameClip.Clip.length + 1.5f;
+                    delay = winGameClip.Clip.length + 1.5f;
                 }
                 break;
             default:
-                if (sceneName.ToLowerInvariant().Contains(GameManager.LevelPrefix.ToLowerInvariant()))
+                var lower = sceneName.ToLowerInvariant();
+                if (lower.Contains(GameManager.LevelPrefix.ToLowerInvariant()) || lower.Contains(GameManager.TutorialPrefix.ToLowerInvariant()))
                 {
                     nextSound = Audios.LevelTheme;
                 }
                 break;
         }
 
-        if (!nextSound.Equals(String.Empty))
-        {
-            PlaySound(nextSound, delay);
-        }
-
-        foreach (var clip in AudioClips.Select(kvp => kvp.Value).Where(clip => !clip.Name.Equals(nextSound) && clip.Loop))
-        {
-            clip.StopClip();
-        }
+        return new Tuple<string,float>(nextSound, delay);
     }
 
     public static void PauseBackgroundMusic()

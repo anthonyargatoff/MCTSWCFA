@@ -22,6 +22,8 @@ public class LoadingScreen : MonoBehaviour
         0, 1, 2, 3, 9, 18
     };
     private static Dictionary<int,Sprite> _characterSprites = new();
+
+    private Vector2 characterPosition;
     
     private void Awake()
     {
@@ -46,13 +48,14 @@ public class LoadingScreen : MonoBehaviour
         times = container.transform.Find("Times").GetComponent<RectTransform>();
         character = container.transform.Find("Character").GetComponent<Image>();
         character.sprite = _characterSprites[0];
+        
+        characterPosition = character.rectTransform.anchoredPosition;
     }
 
     public IEnumerator ShowLoadingScreen(bool respawn = false)
     {
         var width = Screen.width;
         var layoutPos = new Vector2(-width, 0);
-        var charPosition = character.rectTransform.anchoredPosition;
         ToggleBackground(true);
         livesText.SetText($"{GameManager.CurrentLives}");
 
@@ -70,10 +73,10 @@ public class LoadingScreen : MonoBehaviour
             character.enabled = true;
             character.sprite = _characterSprites[18];
 
-            var inc = Vector2.Distance(character.rectTransform.anchoredPosition, charPosition) / 50;
-            while (character.rectTransform.anchoredPosition.y > charPosition.y)
+            var inc = Vector2.Distance(character.rectTransform.anchoredPosition, characterPosition) / 50;
+            while (character.rectTransform.anchoredPosition.y > characterPosition.y)
             {
-                character.rectTransform.anchoredPosition = new Vector2(charPosition.x, character.rectTransform.anchoredPosition.y - inc);
+                character.rectTransform.anchoredPosition = new Vector2(characterPosition.x, character.rectTransform.anchoredPosition.y - inc);
                 yield return new WaitForSecondsRealtime(0.01f);
             }
         }
@@ -83,8 +86,8 @@ public class LoadingScreen : MonoBehaviour
             character.enabled = true;
             float delta = 0;
             var sprIdx = 1;
-            var inc = Vector2.Distance(character.rectTransform.anchoredPosition, charPosition) / 100;
-            while (character.rectTransform.anchoredPosition.x < charPosition.x)
+            var inc = Vector2.Distance(character.rectTransform.anchoredPosition, characterPosition) / 100;
+            while (character.rectTransform.anchoredPosition.x < characterPosition.x)
             {
                 character.sprite = _characterSprites[sprIdx];
                 if (delta > 0.1f)
@@ -93,12 +96,12 @@ public class LoadingScreen : MonoBehaviour
                     delta = 0;
                 }
                 delta += 0.01f;
-                character.rectTransform.anchoredPosition = new Vector2(character.rectTransform.anchoredPosition.x + inc, charPosition.y);
+                character.rectTransform.anchoredPosition = new Vector2(character.rectTransform.anchoredPosition.x + inc, characterPosition.y);
                 yield return new WaitForSecondsRealtime(0.01f);
             }
         }
 
-        character.rectTransform.anchoredPosition = charPosition;
+        character.rectTransform.anchoredPosition = characterPosition;
 
         character.sprite = _characterSprites[0];
         var toSpell = $"LEVEL {GameManager.CurrentLevel}";
@@ -147,7 +150,7 @@ public class LoadingScreen : MonoBehaviour
         }
 
         ToggleBackground(false);
-        character.rectTransform.anchoredPosition = charPosition;
+        character.rectTransform.anchoredPosition = characterPosition;
         layout.anchoredPosition = layoutPos;
         flavorText.SetText("");
     }

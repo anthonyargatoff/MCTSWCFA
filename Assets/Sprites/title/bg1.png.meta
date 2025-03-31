@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 614c57deff2c7af45981ead11c330cfc
+guid: aeccf7255142f4b4fa4af62b14ffcec6
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6348806237195144154
-    second: beast_0
+      213: -1768854372134492381
+    second: bg1_0
+  - first:
+      213: -2830429904042956817
+    second: bg1_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -51,7 +54,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 32
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -113,133 +116,45 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: beast_0
+      name: bg1_0
       rect:
         serializedVersion: 2
-        x: 1
-        y: 67
-        width: 32
-        height: 32
+        x: 0
+        y: 0
+        width: 104
+        height: 129
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 624f23c5d5284e7a0800000000000000
-      internalID: -6348806237195144154
+      spriteID: 327e6810254c377e0800000000000000
+      internalID: -1768854372134492381
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: beast_1
+      name: bg1_1
       rect:
         serializedVersion: 2
-        x: 34
-        y: 67
-        width: 32
-        height: 32
+        x: 87
+        y: 0
+        width: 104
+        height: 129
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 45d797971d7869c4d85bb6d89363f97f
-      internalID: 1401252309
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: beast_2
-      rect:
-        serializedVersion: 2
-        x: 67
-        y: 67
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 2c34cd0d6fa4be34290e65e1a4976c7c
-      internalID: 582179740
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: beast_3
-      rect:
-        serializedVersion: 2
-        x: 100
-        y: 67
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: e5cc294689f9fc444a577649bd0e8b9f
-      internalID: -896791263
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: beast_4
-      rect:
-        serializedVersion: 2
-        x: 133
-        y: 67
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 3593c6b23dc1b784a83a18a234cf7503
-      internalID: 402227269
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: beast_5
-      rect:
-        serializedVersion: 2
-        x: 166
-        y: 67
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: def93c40899f926448fbc602c73d617f
-      internalID: 773729785
+      spriteID: fe760ef9ffa48b8d0800000000000000
+      internalID: -2830429904042956817
       vertices: []
       indices: 
       edges: []
@@ -248,7 +163,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: b5ff23ac703e620448ecf9708b9867e7
+    spriteID: 3cfde632a6199c141b6751ee0e0d60de
     internalID: 0
     vertices: []
     indices: 
@@ -258,12 +173,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      beast_0: -6348806237195144154
-      beast_1: 1401252309
-      beast_2: 582179740
-      beast_3: -896791263
-      beast_4: 402227269
-      beast_5: 773729785
+      bg1_0: -1768854372134492381
+      bg1_1: -2830429904042956817
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
